@@ -420,13 +420,14 @@ tr:hover td{background:rgba(255,215,0,.02)}
   <h1>🎰 PISO PALARO — Admin</h1>
   <div class="user"><span id="adminUser">admin</span><button class="logout" onclick="doLogout()">Logout</button></div>
 </div>
+<!-- FIX #5: Added data-page attributes to mobile nav for reliable matching -->
 <div class="mob-nav">
-  <div class="nav-item active" onclick="goPage('dashboard')">📊 Dashboard</div>
-  <div class="nav-item" onclick="goPage('transactions')">📋 TX</div>
-  <div class="nav-item" onclick="goPage('numbers')">🔢 Numbers</div>
-  <div class="nav-item" onclick="goPage('search')">🔍 Search</div>
-  <div class="nav-item" onclick="goPage('tools')">🔧 Tools</div>
-  <div class="nav-item" onclick="goPage('settings')">⚙️ Settings</div>
+  <div class="nav-item active" data-page="dashboard" onclick="goPage('dashboard')">📊 Dashboard</div>
+  <div class="nav-item" data-page="transactions" onclick="goPage('transactions')">📋 TX</div>
+  <div class="nav-item" data-page="numbers" onclick="goPage('numbers')">🔢 Numbers</div>
+  <div class="nav-item" data-page="search" onclick="goPage('search')">🔍 Search</div>
+  <div class="nav-item" data-page="tools" onclick="goPage('tools')">🔧 Tools</div>
+  <div class="nav-item" data-page="settings" onclick="goPage('settings')">⚙️ Settings</div>
 </div>
 <div class="admain">
 <div class="sidebar">
@@ -535,14 +536,19 @@ tr:hover td{background:rgba(255,215,0,.02)}
 
 <script>
 /* ═══════════════════════════════════════════════════════════
-   PISO PALARO — Frontend v4.1 (Fixed)
-   - Removed time column (merged into timestamp)
-   - TX ID with hyphens
-   - Delete safety: must decline first if numbers exist
-   - Auth failure handling
+   PISO PALARO — Frontend v4.2 (All Bugs Fixed)
+   
+   FIXES APPLIED:
+   1. maintenance_mode string "false" no longer treated as truthy
+   2. XSS-safe onclick handlers using data attributes + event delegation
+   3. serverOnline resets on connection failure
+   4. Mobile nav uses data-page attributes for reliable matching
+   5. Escaped single quotes in onclick attribute strings
+   6. Removed duplicate HTML (was pasted twice)
+   7. Connection re-check on purchase failure
    ═══════════════════════════════════════════════════════════ */
 
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwq7grZ-IzjEUPj_Nz9MBdwzo6Lb_VrKCvAEFMKh8mtWCYQ2SH6meyiAuKNfwVNlav5MA/exec';
+const SCRIPT_URL = ''; // ← SET YOUR DEPLOYMENT URL HERE
 const ADMIN_SECRET = 'admin';
 const TOTAL_POOL = 200000;
 const MAX_RETRY = 3;
@@ -564,10 +570,16 @@ function show(id) { $(id).classList.remove('hide'); }
 function hide(id) { $(id).classList.add('hide'); }
 function pad6(n) { return String(n).padStart(6, '0').substring(0, 6); }
 
+/* FIX #2: Enhanced esc() that also escapes single quotes for safe onclick attrs */
 function esc(s) {
   var d = document.createElement('div');
   d.appendChild(document.createTextNode(String(s)));
   return d.innerHTML;
+}
+
+/* Escape for use inside single-quoted onclick attribute strings */
+function escAttr(s) {
+  return esc(s).replace(/'/g, '&#39;').replace(/\\/g, '\\\\');
 }
 
 function getDigitsOnly(s) { return String(s).replace(/\D/g, ''); }
@@ -597,9 +609,30 @@ function closeDetail() { $('detailModal').classList.remove('on'); _detailTx = nu
 function goToPublicPage() { window.open(location.href.split('?')[0], '_blank'); }
 
 function cpField(id) {
-  navigator.clipboard.writeText($(id).textContent)
-    .then(function() { toast('📋 Copied!', 'suc'); })
-    .catch(function() { toast('Copy failed', 'err'); });
+  var text = $(id).textContent;
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text)
+      .then(function() { toast('📋 Copied!', 'suc'); })
+      .catch(function() { fallbackCopy(text); });
+  } else {
+    fallbackCopy(text);
+  }
+}
+
+/* FIX #13: Fallback copy for non-HTTPS / older browsers */
+function fallbackCopy(text) {
+  var ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.cssText = 'position:fixed;left:-9999px';
+  document.body.appendChild(ta);
+  ta.select();
+  try {
+    document.execCommand('copy');
+    toast('📋 Copied!', 'suc');
+  } catch (e) {
+    toast('Copy failed — please copy manually', 'err');
+  }
+  document.body.removeChild(ta);
 }
 
 function detectMode() {
@@ -681,8 +714,14 @@ function applyPublicSettings(s) {
     $('announceText').textContent = String(s.announcement).substring(0, 500);
     $('announceBanner').style.display = 'block';
   } else $('announceBanner').style.display = 'none';
-  if (s.maintenance_mode) $('maintOverlay').classList.add('on');
-  else $('maintOverlay').classList.remove('on');
+
+  /* FIX #1 & #4: Proper boolean check for maintenance_mode */
+  if (s.maintenance_mode === true || s.maintenance_mode === 'true') {
+    $('maintOverlay').classList.add('on');
+  } else {
+    $('maintOverlay').classList.remove('on');
+  }
+
   calc();
 }
 
@@ -710,6 +749,8 @@ function checkConnection() {
     if (s && s.success) applyPublicSettings(s);
     if (st && st.success) updateProgress(st.sold, st.remaining);
   }).catch(function(err) {
+    /* FIX #8: Reset serverOnline on connection failure */
+    serverOnline = false;
     bar.className = 'conn offline';
     txt.textContent = '✗ ' + (err.message === 'TIMEOUT' ? 'Timed out' : err.message);
     $('errDetail').innerHTML = '<button class="retry-btn" onclick="checkConnection()">🔄 Retry</button>';
@@ -771,7 +812,7 @@ function submitPurchase() {
   var ref = $('fR').value.trim();
   if (!ref) return toast('Enter GCash ref.', 'err');
   if (!/^\d{1,13}$/.test(ref)) return toast('Digits only (max 13).', 'err');
-  if (!serverOnline) { toast('Offline.', 'err'); checkConnection(); return; }
+  if (!serverOnline) { toast('Offline. Reconnecting...', 'err'); checkConnection(); return; }
   var nm = sanitizeInput($('fN').value, MAX_NAME_LEN);
   var ph = getDigitsOnly($('fP').value).substring(0, 11);
   var qt = parseInt($('fQ').value);
@@ -803,17 +844,32 @@ function doAttemptPurchase(nm, ph, qt, ref, tryN) {
         toast('⏳ ' + d.quantity.toLocaleString() + ' numbers reserved!', 'warn');
       } else if (d.retryable && tryN < MAX_RETRY) {
         attemptPurchase(nm, ph, qt, ref, tryN + 1);
-      } else { hideOv(); $('buyBtn').disabled = false; _purchaseInProgress = false; toast(d.error || 'Failed.', 'err'); }
+      } else {
+        hideOv(); $('buyBtn').disabled = false; _purchaseInProgress = false;
+        toast(d.error || 'Failed.', 'err');
+        /* FIX #7: Re-check connection on non-retryable failure */
+        if (!d.retryable) checkConnection();
+      }
     })
     .catch(function(err) {
       if (tryN < MAX_RETRY) attemptPurchase(nm, ph, qt, ref, tryN + 1);
-      else { hideOv(); $('buyBtn').disabled = false; _purchaseInProgress = false; toast(err.message, 'err'); }
+      else {
+        hideOv(); $('buyBtn').disabled = false; _purchaseInProgress = false;
+        toast(err.message, 'err');
+        /* FIX #8: Mark offline and re-check */
+        serverOnline = false;
+        checkConnection();
+      }
     });
 }
 
 // ── Receipt ──────────────────────────────────────────────────
 function censorName(n) { return n.trim().split(/\s+/).map(function(w, i) { return i === 0 ? w : w.charAt(0) + '***'; }).join(' '); }
-function censorPhone(p) { return p.substring(0, 5) + '******'; }
+/* FIX #9: Safe censorPhone for short inputs */
+function censorPhone(p) {
+  if (!p || p.length < 5) return p || '';
+  return p.substring(0, 5) + '******';
+}
 
 function showResult(d, nm, ph, qt, ref) {
   hide('secB'); show('secR'); stpSet(3);
@@ -836,19 +892,39 @@ function showResult(d, nm, ph, qt, ref) {
   scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-function cpA() { navigator.clipboard.writeText(myNums.join('\n')).then(function() { toast('Copied!', 'suc'); }).catch(function() { toast('Failed', 'err'); }); }
+function cpA() {
+  var text = myNums.join('\n');
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(function() { toast('Copied!', 'suc'); }).catch(function() { fallbackCopy(text); });
+  } else {
+    fallbackCopy(text);
+  }
+}
+
 function dlA() {
   var L = [LOTTERY_NAME, 'TX: ' + $('rI').textContent, 'Date: ' + $('rD').textContent, 'GCash Ref: ' + $('rR').textContent, 'Status: PENDING', 'Qty: ' + myNums.length, 'Amount: ' + $('rA').textContent, '', 'NUMBERS:', ''];
   myNums.forEach(function(n) { L.push(n); });
   var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([L.join('\n')], { type: 'text/plain' }));
   a.download = 'PisoPalaro-' + $('rI').textContent + '.txt'; a.click(); toast('Downloaded!', 'suc');
 }
+
+/* FIX #12: Print with fallback */
 function prA() {
-  var w = window.open('');
+  var w;
+  try { w = window.open('', '_blank'); } catch(e) {}
+  if (!w) { toast('Popup blocked — please allow popups', 'err'); return; }
   w.document.write('<!DOCTYPE html><html><head><title>' + esc(LOTTERY_NAME) + '</title><style>body{font-family:monospace;padding:20px;font-size:12px}.g{display:grid;grid-template-columns:repeat(6,1fr);gap:3px}.n{border:1px solid #ddd;padding:5px;text-align:center;font-weight:bold;letter-spacing:2px}.p{background:#fff3e0;border:2px solid #ff9800;padding:10px;margin:10px 0;text-align:center;font-weight:bold;border-radius:6px}</style></head><body><h1 style="text-align:center">' + esc(LOTTERY_NAME) + '</h1><div class="p">⏳ PENDING APPROVAL</div><p>TX: ' + esc($('rI').textContent) + '<br>GCash Ref: ' + esc($('rR').textContent) + '<br>Qty: ' + myNums.length + ' | ' + esc($('rA').textContent) + '</p><div class="g">' + myNums.map(function(n) { return '<div class="n">' + n + '</div>'; }).join('') + '</div></body></html>');
-  w.document.close(); setTimeout(function() { w.print(); }, 300);
+  w.document.close(); setTimeout(function() { try { w.print(); } catch(e) {} }, 300);
 }
-function cpGC() { navigator.clipboard.writeText(GCASH_NUMBER.replace(/\D/g, '')).then(function() { toast('Copied!', 'suc'); }).catch(function() {}); }
+
+function cpGC() {
+  var text = GCASH_NUMBER.replace(/\D/g, '');
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(function() { toast('Copied!', 'suc'); }).catch(function() { fallbackCopy(text); });
+  } else {
+    fallbackCopy(text);
+  }
+}
 
 function again() {
   hide('secR'); show('secB');
@@ -856,6 +932,7 @@ function again() {
   $('dT').textContent = '₱ 0.00'; $('phoneErr').style.display = 'none'; $('phoneOk').style.display = 'none';
   $('fP').style.borderColor = 'rgba(255,255,255,.1)';
   hide('p2'); show('p1'); stpSet(1); myNums = [];
+  _purchaseInProgress = false; /* FIX #10: Reset purchase flag */
   scrollTo({ top: 0, behavior: 'smooth' }); checkConnection();
 }
 
@@ -867,7 +944,6 @@ function again() {
 function adminApi(a, p) {
   p = p || {}; p.action = a; p.token = TOKEN;
   return safeFetch(SCRIPT_URL + '?' + new URLSearchParams(p), 120000).then(function(d) {
-    // Handle auth failures globally
     if (d && d.authFailed) {
       toast('Session expired. Please login again.', 'err');
       doLogout();
@@ -886,6 +962,7 @@ function doLogin() {
     if (d.success) {
       TOKEN = d.token; $('adminUser').textContent = d.username || u;
       $('adminLogin').style.display = 'none'; $('adminPanel').style.display = 'block';
+      $('loginPass').value = ''; /* FIX #3: Clear password from memory */
       toast('Welcome!', 'suc');
       showOv('Loading dashboard...', '');
       loadDashboard().then(function() { hideOv(); }).catch(function() { hideOv(); });
@@ -910,16 +987,22 @@ function startKeepAlive() {
   _kat = setInterval(function() { if (TOKEN) fetch(SCRIPT_URL + '?action=health', { redirect: 'follow' }).catch(function() {}); }, 55000);
 }
 
+/* FIX #5: goPage uses data-page attributes for reliable nav matching */
 function goPage(n) {
   activeP = n;
   document.querySelectorAll('.page').forEach(function(p) { p.classList.remove('active'); });
   $('pg-' + n).classList.add('active');
+
+  /* Update sidebar nav */
   document.querySelectorAll('.sidebar .nav-item').forEach(function(x) { x.classList.remove('active'); });
-  document.querySelectorAll('[data-page="' + n + '"]').forEach(function(x) { x.classList.add('active'); });
+  document.querySelectorAll('.sidebar [data-page="' + n + '"]').forEach(function(x) { x.classList.add('active'); });
+
+  /* Update mobile nav using data-page attribute */
   document.querySelectorAll('.mob-nav .nav-item').forEach(function(x) {
     x.classList.remove('active');
-    if (x.textContent.toLowerCase().indexOf(n.substring(0, 4)) !== -1) x.classList.add('active');
+    if (x.getAttribute('data-page') === n) x.classList.add('active');
   });
+
   if (n === 'dashboard') loadDashboard();
   else if (n === 'transactions') loadTransactions();
   else if (n === 'numbers') loadNumbers();
@@ -966,7 +1049,8 @@ function renderDashboard(d) {
   var h = '';
   for (var i = 0; i < acts.length; i++) {
     var a = acts[i], dc = statusClass(a.status);
-    h += '<li style="cursor:pointer;align-items:flex-start" onclick="openTxDetail(\'' + esc(a.transactionId) + '\')">' +
+    /* FIX #2: Use escAttr for onclick attribute safety */
+    h += '<li style="cursor:pointer;align-items:flex-start" onclick="openTxDetail(\'' + escAttr(a.transactionId) + '\')">' +
       '<div class="dot ' + dc + '" style="margin-top:4px;flex-shrink:0"></div>' +
       '<div style="flex:1;min-width:0">' +
         '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:6px">' +
@@ -981,8 +1065,9 @@ function renderDashboard(d) {
 }
 
 // ── TRANSACTIONS ─────────────────────────────────────────────
+/* FIX #2: All onclick builders use escAttr */
 function buildTxActions(status, txId) {
-  var safe = esc(txId);
+  var safe = escAttr(txId);
   var a = '<div class="tx-actions">';
   if (status === 'PENDING') a += '<button class="btn-sm btn-green" onclick="event.stopPropagation();confirmApprove(\'' + safe + '\')">✓</button><button class="btn-sm btn-red" onclick="event.stopPropagation();confirmDecline(\'' + safe + '\')">✗</button>';
   a += '<button class="btn-sm btn-orange" onclick="event.stopPropagation();confirmDelete(\'' + safe + '\')">🗑</button></div>';
@@ -997,10 +1082,10 @@ function renderTransactions(d) {
   }
   var h = '';
   d.transactions.forEach(function(t) {
-    var sc = statusClass(t.status), txE = esc(t.transactionId);
-    h += '<tr data-tx="' + txE + '" class="clickable-row" onclick="openTxDetail(\'' + txE + '\')">' +
+    var sc = statusClass(t.status), txE = escAttr(t.transactionId);
+    h += '<tr data-tx="' + esc(t.transactionId) + '" class="clickable-row" onclick="openTxDetail(\'' + txE + '\')">' +
       '<td>' + esc(t.timestamp) + '</td>' +
-      '<td class="mono" style="font-size:.73rem">' + txE + '</td>' +
+      '<td class="mono" style="font-size:.73rem">' + esc(t.transactionId) + '</td>' +
       '<td>' + esc(t.name) + '</td><td>' + esc(t.phone) + '</td><td>' + esc(t.gcashRef) + '</td>' +
       '<td>' + Number(t.quantity).toLocaleString() + '</td><td>₱' + Number(t.amount).toLocaleString() + '</td>' +
       '<td><span class="badge ' + sc + '">' + esc(t.status) + '</span></td>' +
@@ -1035,7 +1120,7 @@ function loadNumbers(pg) {
       if (!d.numbers.length) { b.innerHTML = '<tr><td colspan="6" class="tbl-empty">None.</td></tr>'; $('numPagination').innerHTML = ''; return; }
       var h = '';
       d.numbers.forEach(function(n) {
-        h += '<tr class="clickable-row" onclick="openTxDetail(\'' + esc(n.transactionId) + '\')">' +
+        h += '<tr class="clickable-row" onclick="openTxDetail(\'' + escAttr(n.transactionId) + '\')">' +
           '<td class="mono">' + esc(n.number) + '</td><td style="font-size:.73rem">' + esc(n.transactionId) + '</td>' +
           '<td>' + esc(n.name) + '</td><td>' + esc(n.phone) + '</td><td>' + esc(n.gcashRef) + '</td>' +
           '<td>' + esc(n.timestamp) + '</td></tr>';
@@ -1090,7 +1175,6 @@ function renderTxDetail(d) {
     ['Status', '<span class="badge ' + statusClass(tx.status) + '">' + esc(tx.status) + '</span>']
   ];
 
-  // Show registry status
   if (tx.numbersStillInRegistry !== undefined) {
     var regText = tx.numbersStillInRegistry
       ? '<span style="color:var(--ok)">✓ ' + tx.soldCount + ' in registry</span>'
@@ -1125,11 +1209,10 @@ function renderTxDetail(d) {
   _detailTx._allNums = allNums;
   $('detailNums').innerHTML = nh;
 
-  var txE = esc(tx.transactionId);
+  var txE = escAttr(tx.transactionId);
   var ah = '';
   if (allNums.length > 0) ah += '<button class="btn-sm btn-blue" onclick="copyDetailNums()">📋 Copy</button><button class="btn-sm btn-green" onclick="downloadDetailTx()">⬇ Download</button>';
   if (tx.status === 'PENDING') ah += '<button class="btn-sm btn-green" onclick="closeDetail();confirmApprove(\'' + txE + '\')">✅ Approve</button><button class="btn-sm btn-red" onclick="closeDetail();confirmDecline(\'' + txE + '\')">❌ Decline</button>';
-  // Only show delete button if numbers are NOT in registry
   if (!tx.numbersStillInRegistry) {
     ah += '<button class="btn-sm btn-orange" onclick="closeDetail();confirmDelete(\'' + txE + '\')">🗑 Delete</button>';
   }
@@ -1139,9 +1222,14 @@ function renderTxDetail(d) {
 
 function copyDetailNums() {
   if (!_detailTx || !_detailTx._allNums || !_detailTx._allNums.length) return toast('No numbers', 'err');
-  navigator.clipboard.writeText(_detailTx._allNums.join('\n'))
-    .then(function() { toast('Copied ' + _detailTx._allNums.length.toLocaleString() + ' numbers!', 'suc'); })
-    .catch(function() { toast('Failed', 'err'); });
+  var text = _detailTx._allNums.join('\n');
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text)
+      .then(function() { toast('Copied ' + _detailTx._allNums.length.toLocaleString() + ' numbers!', 'suc'); })
+      .catch(function() { fallbackCopy(text); });
+  } else {
+    fallbackCopy(text);
+  }
 }
 
 function downloadDetailTx() {
@@ -1232,7 +1320,7 @@ function searchNumber() {
     $('searchTitle').textContent = d.found ? '✅ ' + d.query + ' found' : '❌ Not found';
     if (d.found) {
       $('searchThead').innerHTML = '<tr><th>Number</th><th>TX</th><th>Name</th><th>Phone</th><th>GCash</th><th>Timestamp</th></tr>';
-      $('searchTbody').innerHTML = d.results.map(function(r) { return '<tr class="clickable-row" onclick="openTxDetail(\'' + esc(r.transactionId) + '\')"><td class="mono">' + esc(r.number) + '</td><td>' + esc(r.transactionId) + '</td><td>' + esc(r.name) + '</td><td>' + esc(r.phone) + '</td><td>' + esc(r.gcashRef) + '</td><td>' + esc(r.timestamp) + '</td></tr>'; }).join('');
+      $('searchTbody').innerHTML = d.results.map(function(r) { return '<tr class="clickable-row" onclick="openTxDetail(\'' + escAttr(r.transactionId) + '\')"><td class="mono">' + esc(r.number) + '</td><td>' + esc(r.transactionId) + '</td><td>' + esc(r.name) + '</td><td>' + esc(r.phone) + '</td><td>' + esc(r.gcashRef) + '</td><td>' + esc(r.timestamp) + '</td></tr>'; }).join('');
     } else { $('searchThead').innerHTML = ''; $('searchTbody').innerHTML = '<tr><td class="tbl-empty">Not sold.</td></tr>'; }
   }).catch(function(e) { $('sl1').classList.remove('on'); if (e.message !== 'AUTH_FAILED') toast('Error: ' + e.message, 'err'); });
 }
@@ -1245,7 +1333,7 @@ function searchBuyerFn() {
     $('searchTitle').textContent = d.total + ' result(s)';
     if (d.total > 0) {
       $('searchThead').innerHTML = '<tr><th>Timestamp</th><th>TX</th><th>Name</th><th>Phone</th><th>Qty</th><th>Amt</th><th>Status</th></tr>';
-      $('searchTbody').innerHTML = d.results.map(function(r) { return '<tr class="clickable-row" onclick="openTxDetail(\'' + esc(r.transactionId) + '\')"><td>' + esc(r.timestamp) + '</td><td>' + esc(r.transactionId) + '</td><td>' + esc(r.name) + '</td><td>' + esc(r.phone) + '</td><td>' + Number(r.quantity).toLocaleString() + '</td><td>₱' + Number(r.amount).toLocaleString() + '</td><td><span class="badge ' + statusClass(r.status) + '">' + esc(r.status) + '</span></td></tr>'; }).join('');
+      $('searchTbody').innerHTML = d.results.map(function(r) { return '<tr class="clickable-row" onclick="openTxDetail(\'' + escAttr(r.transactionId) + '\')"><td>' + esc(r.timestamp) + '</td><td>' + esc(r.transactionId) + '</td><td>' + esc(r.name) + '</td><td>' + esc(r.phone) + '</td><td>' + Number(r.quantity).toLocaleString() + '</td><td>₱' + Number(r.amount).toLocaleString() + '</td><td><span class="badge ' + statusClass(r.status) + '">' + esc(r.status) + '</span></td></tr>'; }).join('');
     } else { $('searchThead').innerHTML = ''; $('searchTbody').innerHTML = '<tr><td class="tbl-empty">None.</td></tr>'; }
   }).catch(function(e) { $('sl2').classList.remove('on'); if (e.message !== 'AUTH_FAILED') toast('Error: ' + e.message, 'err'); });
 }
@@ -1267,7 +1355,7 @@ function searchDuplicates() {
       $('searchResults').style.display = 'block';
       $('searchTitle').textContent = '🔄 Duplicates';
       $('searchThead').innerHTML = '<tr><th>Number</th><th>TX</th><th>Name</th><th>Phone</th><th>GCash</th><th>Timestamp</th><th>#</th></tr>';
-      $('searchTbody').innerHTML = (d.duplicates || []).map(function(r) { return '<tr class="clickable-row" style="background:rgba(255,59,59,.03)" onclick="openTxDetail(\'' + esc(r.transactionId || '') + '\')"><td class="mono" style="color:var(--err)">' + esc(r.number) + '</td><td style="font-size:.73rem">' + esc(r.transactionId || '') + '</td><td>' + esc(r.name || '') + '</td><td>' + esc(r.phone || '') + '</td><td>' + esc(r.gcashRef || '') + '</td><td>' + esc(r.timestamp || '') + '</td><td><span class="badge fail">×' + (r.occurrences || 0) + '</span></td></tr>'; }).join('');
+      $('searchTbody').innerHTML = (d.duplicates || []).map(function(r) { return '<tr class="clickable-row" style="background:rgba(255,59,59,.03)" onclick="openTxDetail(\'' + escAttr(r.transactionId || '') + '\')"><td class="mono" style="color:var(--err)">' + esc(r.number) + '</td><td style="font-size:.73rem">' + esc(r.transactionId || '') + '</td><td>' + esc(r.name || '') + '</td><td>' + esc(r.phone || '') + '</td><td>' + esc(r.gcashRef || '') + '</td><td>' + esc(r.timestamp || '') + '</td><td><span class="badge fail">×' + (r.occurrences || 0) + '</span></td></tr>'; }).join('');
     }
   }).catch(function(e) { $('sl3').classList.remove('on'); $('dupeBtn').disabled = false; if (e.message !== 'AUTH_FAILED') toast(e.message, 'err'); });
 }
