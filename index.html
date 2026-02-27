@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>PISO PALARO</title>
+<meta name="robots" content="noindex,nofollow">
+<meta http-equiv="X-Content-Type-Options" content="nosniff">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -137,7 +139,6 @@ footer{text-align:center;padding:24px 0;color:var(--sub);font-size:.68rem;line-h
 .search-loading.on{display:flex}
 .search-loading .sp-sm{width:16px;height:16px;border:2px solid rgba(255,215,0,.15);border-top-color:var(--gold);border-radius:50%;animation:spin .6s linear infinite}
 .pool-info{font-size:.72rem;color:var(--sub);text-align:center;margin-top:4px;font-family:'JetBrains Mono',monospace;letter-spacing:1px}
-/* Admin styles */
 .login-wrap{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px}
 .login-box{background:var(--card);border:1px solid var(--bdr);border-radius:20px;padding:40px 32px;width:100%;max-width:420px;backdrop-filter:blur(10px);text-align:center}
 .login-box h1{font-size:1.6rem;margin-bottom:4px;background:linear-gradient(135deg,var(--goldd),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
@@ -230,7 +231,6 @@ tr:hover td{background:rgba(255,215,0,.02)}
 .detail-actions{display:flex;gap:8px;margin-top:18px;padding-top:18px;border-top:1px dashed var(--bdr);flex-wrap:wrap;justify-content:center}
 .clickable-row{cursor:pointer;transition:.2s}
 .clickable-row:hover td{background:rgba(255,215,0,.06)!important}
-.row-deleting{opacity:0;transform:translateX(40px);transition:all .4s ease}
 .tx-actions{display:flex;gap:4px;flex-wrap:wrap}
 .pub-link{display:block;margin-top:20px;color:var(--gc);font-size:.82rem;font-weight:600;text-decoration:none;transition:.2s}
 .pub-link:hover{color:var(--gold)}
@@ -248,7 +248,6 @@ tr:hover td{background:rgba(255,215,0,.02)}
   .ngrid{grid-template-columns:repeat(auto-fill,minmax(82px,1fr))}
   .acts{grid-template-columns:1fr}
   .rd{grid-template-columns:1fr}
-  .detail-grid{grid-template-columns:1fr}
   .stp .stx{display:none}
   .stp{padding:7px 6px}
 }
@@ -410,8 +409,8 @@ tr:hover td{background:rgba(255,215,0,.02)}
 <div class="login-box">
   <h1>🔐 PISO PALARO</h1>
   <div class="lsub">Admin Panel</div>
-  <div class="fg"><label>Username</label><input id="loginUser" placeholder="Username"></div>
-  <div class="fg"><label>Password</label><input id="loginPass" type="password" placeholder="Password"></div>
+  <div class="fg"><label>Username</label><input id="loginUser" placeholder="Username" autocomplete="off"></div>
+  <div class="fg"><label>Password</label><input id="loginPass" type="password" placeholder="Password" autocomplete="off"></div>
   <button class="btn b1" id="loginBtn" onclick="doLogin()">🔑 Sign In</button>
   <a href="#" onclick="goToPublicPage();return false" class="pub-link">🎰 Go to Public Page →</a>
 </div>
@@ -534,7 +533,7 @@ tr:hover td{background:rgba(255,215,0,.02)}
     <div class="setting-group"><h3>🔢 Limits</h3><div class="fg"><label>Price (₱)</label><input id="setPrice" type="number" min="1"></div><div class="fg"><label>Min Qty</label><input id="setMinQty" type="number" min="1"></div><div class="fg"><label>Max Qty</label><input id="setMaxQty" type="number" min="1"></div></div>
     <div class="setting-group"><h3>📢 Announcement</h3><div class="fg"><label>Message</label><textarea id="setAnnouncement" placeholder="Blank = hidden"></textarea></div><div class="fg"><label>Maintenance</label><select id="setMaintenance"><option value="false">Off</option><option value="true">On</option></select></div></div>
   </div>
-  <div class="setting-group"><h3>🔐 Password</h3><div class="settings-grid"><div class="fg"><label>New</label><input id="setNewPass" type="password" placeholder="Min 6"><small style="color:var(--sub)">Blank = keep current</small></div><div class="fg"><label>Confirm</label><input id="setNewPass2" type="password" placeholder="Repeat"></div></div></div>
+  <div class="setting-group"><h3>🔐 Password</h3><div class="settings-grid"><div class="fg"><label>New</label><input id="setNewPass" type="password" placeholder="Min 6" autocomplete="new-password"><small style="color:var(--sub)">Blank = keep current</small></div><div class="fg"><label>Confirm</label><input id="setNewPass2" type="password" placeholder="Repeat" autocomplete="new-password"></div></div></div>
   <button class="btn b1" onclick="saveSettings()" style="max-width:300px">💾 Save Settings</button>
 </div>
 
@@ -543,38 +542,40 @@ tr:hover td{background:rgba(255,215,0,.02)}
 
 <script>
 /* ═══════════════════════════════════════════════════════════
-   PISO PALARO — Frontend v2.2 (Dashboard Fix)
-   Numbers: 000000–199999 (1st digit 0|1, rest 0–9)
+   PISO PALARO — Frontend v3.0 (Hardened & Optimized)
    ═══════════════════════════════════════════════════════════ */
 
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwlRcRloFjHETBqWhwKYu0ESmaGeUDW63Rs86mhYs9r0jK3V3vrAZWa2h60dsaT-RcPmA/exec';
+// ── IMPORTANT: Set your deployed web app URL here ──
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwQTwb3C4JPo2QbDRWf0jHs9220-jvmOxEap7Vlf1I2IUEHmqhPIZTC-SehSfAR7ya0eQ/exec';
 const ADMIN_SECRET = 'admin';
 const TOTAL_POOL = 200000;
 const MAX_RETRY = 3;
-const RETRY_MS = [3000, 5000, 8000];
-const FETCH_TIMEOUT = 60000;
+const RETRY_MS = [2000, 4000, 7000];
+const FETCH_TIMEOUT = 90000;
 const MAX_NAME_LEN = 40;
 
-let GCASH_NUMBER = '0917-123-4567', GCASH_NAME = 'Juan Dela Cruz';
+let GCASH_NUMBER = '09171234567', GCASH_NAME = 'Juan Dela Cruz';
 let PRICE_PER = 1, MIN_QTY = 100, MAX_QTY = 10000, LOTTERY_NAME = 'PISO PALARO';
 let myNums = [], serverOnline = false, TOKEN = '';
 let currentPage = { tx: 1, num: 1 }, IS_ADMIN_MODE = false;
-let _detailTx = null;
-let _art = null, _kat = null, activeP = 'dashboard';
-let _purchaseInProgress = false;
+let _detailTx = null, _art = null, _kat = null, activeP = 'dashboard';
+let _purchaseInProgress = false, _fetchInFlight = new Map();
 
 // ── Helpers ───────────────────────────────────────────────────
 function $(id) { return document.getElementById(id); }
-function show(id) { $(id).classList.remove('hide'); }
-function hide(id) { $(id).classList.add('hide'); }
+function show(id) { $(id)&&$(id).classList.remove('hide'); }
+function hide(id) { $(id)&&$(id).classList.add('hide'); }
 function pad6(n) { return String(n).padStart(6, '0').substring(0, 6); }
-function esc(s) { return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+function esc(s) { const d=document.createElement('div'); d.textContent=String(s||''); return d.innerHTML; }
 function getDigitsOnly(s) { return String(s).replace(/\D/g, ''); }
 function isValidPhone(s) { const d = getDigitsOnly(s); return d.length === 11 && d.startsWith('09'); }
 function isValidNumber(num) { return /^\d{6}$/.test(num) && parseInt(num[0]) <= 1; }
 
 function sanitizeInput(str, maxLen) {
-  str = String(str || '').trim().replace(/<[^>]*>/g, '').replace(/[<>"'`;{}()\\]/g, '').replace(/[\x00-\x1F\x7F]/g, '');
+  str = String(str || '').trim()
+    .replace(/<[^>]*>/g, '')
+    .replace(/[<>"'`;{}()\\]/g, '')
+    .replace(/[\x00-\x1F\x7F]/g, '');
   return maxLen ? str.substring(0, maxLen) : str;
 }
 
@@ -593,7 +594,9 @@ function closeDetail() { $('detailModal').classList.remove('on'); _detailTx = nu
 function goToPublicPage() { window.open(location.href.split('?')[0], '_blank'); }
 
 function cpField(id) {
-  navigator.clipboard.writeText($(id).textContent)
+  const text = $(id) ? $(id).textContent : '';
+  if (!text) return;
+  navigator.clipboard.writeText(text)
     .then(() => toast('📋 Copied!', 'suc')).catch(() => toast('Copy failed', 'err'));
 }
 
@@ -606,7 +609,7 @@ function detectMode() {
   }
 }
 
-// ── Fetch ─────────────────────────────────────────────────────
+// ── Deduplicated Fetch with Timeout ───────────────────────────
 async function safeFetch(url, ms) {
   const c = new AbortController();
   const t = setTimeout(() => c.abort(), ms || FETCH_TIMEOUT);
@@ -621,6 +624,14 @@ async function safeFetch(url, ms) {
     clearTimeout(t);
     throw err.name === 'AbortError' ? new Error('TIMEOUT') : err;
   }
+}
+
+/** Deduplicated fetch — prevents duplicate concurrent requests for same key */
+async function deduplicatedFetch(key, url, ms) {
+  if (_fetchInFlight.has(key)) return _fetchInFlight.get(key);
+  const promise = safeFetch(url, ms).finally(() => _fetchInFlight.delete(key));
+  _fetchInFlight.set(key, promise);
+  return promise;
 }
 
 // ── Date ──────────────────────────────────────────────────────
@@ -751,7 +762,7 @@ function go1() { hide('p2'); show('p1'); stpSet(1); }
 // ── Purchase ─────────────────────────────────────────────────
 function submitPurchase() {
   if (_purchaseInProgress) return toast('Already processing...', 'warn');
-  const ref = $('fR').value.trim();
+  const ref = getDigitsOnly($('fR').value).substring(0, 13);
   if (!ref) return toast('Enter GCash ref.', 'err');
   if (!/^\d{1,13}$/.test(ref)) return toast('Digits only (max 13).', 'err');
   if (!serverOnline) { toast('Offline.', 'err'); checkConnection(); return; }
@@ -766,15 +777,15 @@ function submitPurchase() {
 }
 
 async function attemptPurchase(nm, ph, qt, ref, tryN) {
-  if (tryN === 0) showOv('Generating ' + qt.toLocaleString() + ' numbers...', 'Please wait');
-  else { showOv('Retry ' + tryN + '/' + MAX_RETRY, ''); await new Promise(r => setTimeout(r, RETRY_MS[tryN - 1])); }
+  if (tryN === 0) showOv('Generating ' + qt.toLocaleString() + ' numbers...', 'This may take a moment');
+  else { showOv('Retry ' + tryN + '/' + MAX_RETRY, 'Please wait...'); await new Promise(r => setTimeout(r, RETRY_MS[tryN - 1])); }
   try {
     const d = await safeFetch(SCRIPT_URL + '?' + new URLSearchParams({ action: 'purchase', quantity: qt, name: nm, phone: ph, gcashRef: ref }), FETCH_TIMEOUT);
     if (d.success) {
       hideOv(); $('buyBtn').disabled = false; _purchaseInProgress = false;
-      myNums = d.numbers.map(n => pad6(n));
+      myNums = (d.numbers || []).map(n => pad6(n));
       showResult(d, nm, ph, qt, ref);
-      toast('⏳ ' + d.quantity.toLocaleString() + ' numbers reserved!', 'warn');
+      toast('⏳ ' + (d.quantity||qt).toLocaleString() + ' numbers reserved!', 'warn');
     } else if (d.retryable && tryN < MAX_RETRY) {
       attemptPurchase(nm, ph, qt, ref, tryN + 1);
     } else { hideOv(); $('buyBtn').disabled = false; _purchaseInProgress = false; toast(d.error || 'Failed.', 'err'); }
@@ -785,31 +796,36 @@ async function attemptPurchase(nm, ph, qt, ref, tryN) {
 }
 
 // ── Receipt ──────────────────────────────────────────────────
-function censorName(n) { return n.trim().split(/\s+/).map((w, i) => i === 0 ? w : w.charAt(0) + '***').join(' '); }
-function censorPhone(p) { return p.substring(0, 5) + '******'; }
+function censorName(n) { return String(n).trim().split(/\s+/).map((w, i) => i === 0 ? w : w.charAt(0) + '***').join(' '); }
+function censorPhone(p) { return String(p).substring(0, 5) + '******'; }
 
 function showResult(d, nm, ph, qt, ref) {
   hide('secB'); show('secR'); stpSet(3);
-  $('rI').textContent = d.transactionId; $('rD').textContent = d.timestamp;
-  $('rN').textContent = censorName(nm); $('rP').textContent = censorPhone(ph);
-  $('rQ').textContent = d.quantity.toLocaleString();
-  $('rA').textContent = '₱ ' + Number(d.amount).toLocaleString(undefined, { minimumFractionDigits: 2 });
-  $('rR').textContent = ref; $('rS').textContent = '⏳ PENDING';
+  $('rI').textContent = d.transactionId || '';
+  $('rD').textContent = d.timestamp || '';
+  $('rN').textContent = censorName(nm);
+  $('rP').textContent = censorPhone(ph);
+  $('rQ').textContent = (d.quantity||qt).toLocaleString();
+  $('rA').textContent = '₱ ' + Number(d.amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 });
+  $('rR').textContent = ref;
+  $('rS').textContent = '⏳ PENDING';
   $('rC').textContent = myNums.length.toLocaleString();
-  $('nG').innerHTML = myNums.map(n => '<div class="ni">' + n + '</div>').join('');
+  $('nG').innerHTML = myNums.map(n => '<div class="ni">' + esc(n) + '</div>').join('');
   scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-function cpA() { navigator.clipboard.writeText(myNums.join('\n')).then(() => toast('Copied!', 'suc')).catch(() => toast('Failed', 'err')); }
+function cpA() { if(!myNums.length)return; navigator.clipboard.writeText(myNums.join('\n')).then(() => toast('Copied!', 'suc')).catch(() => toast('Failed', 'err')); }
 function dlA() {
-  const L = [LOTTERY_NAME, 'TX: ' + $('rI').textContent, 'Date: ' + $('rD').textContent, 'GCash Ref: ' + $('rR').textContent, 'Status: PENDING', 'Qty: ' + myNums.length, 'Amount: ' + $('rA').textContent, '', 'NUMBERS:', ''];
+  if(!myNums.length)return;
+  const L = [LOTTERY_NAME, 'TX: ' + ($('rI').textContent||''), 'Date: ' + ($('rD').textContent||''), 'GCash Ref: ' + ($('rR').textContent||''), 'Status: PENDING', 'Qty: ' + myNums.length, 'Amount: ' + ($('rA').textContent||''), '', 'NUMBERS:', ''];
   myNums.forEach(n => L.push(n));
   const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([L.join('\n')], { type: 'text/plain' }));
-  a.download = 'PisoPalaro-' + $('rI').textContent + '.txt'; a.click(); toast('Downloaded!', 'suc');
+  a.download = 'PisoPalaro-' + ($('rI').textContent||'TX') + '.txt'; a.click(); toast('Downloaded!', 'suc');
 }
 function prA() {
+  if(!myNums.length)return;
   const w = window.open('');
-  w.document.write('<!DOCTYPE html><html><head><title>' + esc(LOTTERY_NAME) + '</title><style>body{font-family:monospace;padding:20px;font-size:12px}.g{display:grid;grid-template-columns:repeat(6,1fr);gap:3px}.n{border:1px solid #ddd;padding:5px;text-align:center;font-weight:bold;letter-spacing:2px}.p{background:#fff3e0;border:2px solid #ff9800;padding:10px;margin:10px 0;text-align:center;font-weight:bold;border-radius:6px}.h{background:#fffde7;border:2px solid #ffd700;padding:8px 14px;margin:6px 0;border-radius:6px;font-size:14px;font-weight:bold}</style></head><body><h1 style="text-align:center">' + esc(LOTTERY_NAME) + '</h1><div class="p">⏳ PENDING APPROVAL</div><div class="h">TX: ' + esc($('rI').textContent) + '</div><div class="h">GCash Ref: ' + esc($('rR').textContent) + '</div><p>Qty: ' + myNums.length + ' | ' + esc($('rA').textContent) + '</p><div class="g">' + myNums.map(n => '<div class="n">' + n + '</div>').join('') + '</div></body></html>');
+  w.document.write('<!DOCTYPE html><html><head><title>' + esc(LOTTERY_NAME) + '</title><style>body{font-family:monospace;padding:20px;font-size:12px}.g{display:grid;grid-template-columns:repeat(6,1fr);gap:3px}.n{border:1px solid #ddd;padding:5px;text-align:center;font-weight:bold;letter-spacing:2px}.p{background:#fff3e0;border:2px solid #ff9800;padding:10px;margin:10px 0;text-align:center;font-weight:bold;border-radius:6px}.h{background:#fffde7;border:2px solid #ffd700;padding:8px 14px;margin:6px 0;border-radius:6px;font-size:14px;font-weight:bold}</style></head><body><h1 style="text-align:center">' + esc(LOTTERY_NAME) + '</h1><div class="p">⏳ PENDING APPROVAL</div><div class="h">TX: ' + esc($('rI').textContent||'') + '</div><div class="h">GCash Ref: ' + esc($('rR').textContent||'') + '</div><p>Qty: ' + myNums.length + ' | ' + esc($('rA').textContent||'') + '</p><div class="g">' + myNums.map(n => '<div class="n">' + esc(n) + '</div>').join('') + '</div></body></html>');
   w.document.close(); setTimeout(() => w.print(), 300);
 }
 function cpGC() { navigator.clipboard.writeText(GCASH_NUMBER.replace(/\D/g, '')).then(() => toast('Copied!', 'suc')).catch(() => {}); }
@@ -830,27 +846,24 @@ function again() {
 
 async function adminApi(a, p) {
   p = p || {}; p.action = a; p.token = TOKEN;
-  return safeFetch(SCRIPT_URL + '?' + new URLSearchParams(p), 60000);
+  return safeFetch(SCRIPT_URL + '?' + new URLSearchParams(p), 90000);
 }
 
 async function doLogin() {
-  const u = $('loginUser').value.trim(), p = $('loginPass').value.trim();
+  const u = sanitizeInput($('loginUser').value, 30), p = $('loginPass').value.trim();
   if (!u || !p) return toast('Enter credentials.', 'err');
   $('loginBtn').disabled = true; showOv('Signing in...', '');
   try {
-    const d = await adminApi('adminLogin', { username: u, password: p });
+    const d = await safeFetch(SCRIPT_URL + '?' + new URLSearchParams({ action: 'adminLogin', username: u, password: p }), 30000);
     if (d.success) {
       TOKEN = d.token; $('adminUser').textContent = u;
       $('adminLogin').style.display = 'none'; $('adminPanel').style.display = 'block';
       toast('Welcome!', 'suc');
-
-      // Load dashboard immediately
       showOv('Loading dashboard...', '');
-      try { await loadDashboard(); } catch (e) { console.error('Dashboard load:', e); }
+      try { await loadDashboard(); } catch (e) { console.error('Dashboard:', e); }
       hideOv();
-
       startAutoRefresh(); startKeepAlive();
-    } else toast(d.error, 'err');
+    } else toast(d.error || 'Login failed', 'err');
   } catch (e) { toast(e.message, 'err'); }
   hideOv(); $('loginBtn').disabled = false;
 }
@@ -870,7 +883,7 @@ function startKeepAlive() {
 function goPage(n) {
   activeP = n;
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  $('pg-' + n).classList.add('active');
+  const pg = $('pg-' + n); if (pg) pg.classList.add('active');
   document.querySelectorAll('.sidebar .nav-item').forEach(x => x.classList.remove('active'));
   document.querySelectorAll('[data-page="' + n + '"]').forEach(x => x.classList.add('active'));
   document.querySelectorAll('.mob-nav .nav-item').forEach(x => {
@@ -883,80 +896,38 @@ function goPage(n) {
   else if (n === 'settings') loadSettingsFn();
 }
 
-function statusClass(s) { return s === 'APPROVED' ? 'ok' : s === 'PENDING' ? 'pend' : 'dec'; }
+function statusClass(s) { s = String(s||'').toUpperCase(); return s === 'APPROVED' ? 'ok' : s === 'PENDING' ? 'pend' : 'dec'; }
 
 
 // ═══════════════════════════════════════════════════════════
-//   ★ DASHBOARD — FIXED ★
+//   DASHBOARD
 // ═══════════════════════════════════════════════════════════
 
 async function loadDashboard() {
-  console.log('[Dashboard] Loading fresh data...');
-
-  // Show loading state
-  $('feedList').innerHTML = '<li class="tbl-empty">Loading...</li>';
-
   try {
     const d = await adminApi('adminDashboard');
-    console.log('[Dashboard] Response:', JSON.stringify(d).substring(0, 500));
-
-    if (d && d.success) {
-      renderDashboard(d);
-    } else {
-      console.error('[Dashboard] API error:', d ? d.error : 'null response');
-      $('feedList').innerHTML = '<li class="tbl-empty">Failed to load. <button class="retry-btn" onclick="loadDashboard()">Retry</button></li>';
-    }
+    if (d && d.success) renderDashboard(d);
+    else $('feedList').innerHTML = '<li class="tbl-empty">Failed. <button class="retry-btn" onclick="loadDashboard()">Retry</button></li>';
   } catch (e) {
-    console.error('[Dashboard] Fetch error:', e.message);
     $('feedList').innerHTML = '<li class="tbl-empty">Error: ' + esc(e.message) + ' <button class="retry-btn" onclick="loadDashboard()">Retry</button></li>';
   }
 }
 
-function refreshDashboard() {
-  toast('Refreshing...', 'warn');
-  loadDashboard();
-}
+function refreshDashboard() { toast('Refreshing...', 'warn'); loadDashboard(); }
 
-/**
- * ★ FIX: Correctly maps ALL property names from backend ★
- * Backend returns: sold, remaining, totalPool, percentSold,
- *   totalRevenue, pendingTransactions, approvedTransactions,
- *   declinedTransactions, uniqueBuyers, recentActivity
- */
 function renderDashboard(d) {
-  console.log('[Dashboard] Rendering:', {
-    sold: d.sold,
-    remaining: d.remaining,
-    revenue: d.totalRevenue,
-    pending: d.pendingTransactions,
-    approved: d.approvedTransactions,
-    declined: d.declinedTransactions,
-    buyers: d.uniqueBuyers,
-    activities: d.recentActivity ? d.recentActivity.length : 0
-  });
-
-  // ★ FIX: Use correct property names from backend ★
   const sold = Number(d.sold) || 0;
   const remaining = Number(d.remaining) || 0;
   const totalPool = Number(d.totalPool) || TOTAL_POOL;
-  const percentSold = Number(d.percentSold) || 0;
-  const totalRevenue = Number(d.totalRevenue) || 0;
-  const pendingTx = Number(d.pendingTransactions) || 0;
-  const approvedTx = Number(d.approvedTransactions) || 0;
-  const declinedTx = Number(d.declinedTransactions) || 0;
-  const uniqueBuyers = Number(d.uniqueBuyers) || 0;
-
-  // Update stat cards
   $('dsSold').textContent = sold.toLocaleString();
   $('dsRemain').textContent = remaining.toLocaleString();
-  $('dsPct').textContent = percentSold + '% sold';
-  $('dsRevenue').textContent = '₱' + totalRevenue.toLocaleString();
-  $('dsPending').textContent = pendingTx.toLocaleString();
-  $('dsApproved').textContent = approvedTx.toLocaleString();
-  $('dsDeclined').textContent = declinedTx.toLocaleString();
-  $('dsBuyers').textContent = uniqueBuyers.toLocaleString();
+  $('dsPct').textContent = (Number(d.percentSold) || 0) + '% sold';
+  $('dsRevenue').textContent = '₱' + (Number(d.totalRevenue) || 0).toLocaleString();
+  $('dsPending').textContent = (Number(d.pendingTransactions) || 0).toLocaleString();
+  $('dsApproved').textContent = (Number(d.approvedTransactions) || 0).toLocaleString();
+  $('dsDeclined').textContent = (Number(d.declinedTransactions) || 0).toLocaleString();
+  $('dsBuyers').textContent = (Number(d.uniqueBuyers) || 0).toLocaleString();
 
-  // Progress bar
   const pct = totalPool > 0 ? (sold / totalPool) * 100 : 0;
   const bar = $('dsBar');
   bar.style.width = pct + '%';
@@ -964,40 +935,25 @@ function renderDashboard(d) {
   if (pct > 70) bar.classList.add('low');
   else if (pct > 40) bar.classList.add('mid');
 
-  // ★ FIX: Recent activity ★
   const acts = d.recentActivity || [];
   const list = $('feedList');
+  if (!acts.length) { list.innerHTML = '<li class="tbl-empty">No activity yet.</li>'; return; }
 
-  if (!acts || acts.length === 0) {
-    list.innerHTML = '<li class="tbl-empty">No activity yet. Transactions will appear here.</li>';
-    return;
-  }
-
-  let h = '';
+  const frags = [];
   for (let i = 0; i < acts.length; i++) {
-    const a = acts[i];
-    const dc = statusClass(a.status);
-    const txE = esc(a.transactionId || '');
-    const nameE = esc(a.name || 'Unknown');
-    const qty = Number(a.quantity) || 0;
-    const amt = Number(a.amount) || 0;
-    const ts = esc(a.timestamp || '');
-    const st = esc(a.status || 'UNKNOWN');
-
-    h += '<li style="cursor:pointer;align-items:flex-start" onclick="openTxDetail(\'' + txE + '\')">' +
+    const a = acts[i], dc = statusClass(a.status), txE = esc(a.transactionId || '');
+    frags.push('<li style="cursor:pointer;align-items:flex-start" onclick="openTxDetail(\'' + txE + '\')">' +
       '<div class="dot ' + dc + '" style="margin-top:4px;flex-shrink:0"></div>' +
       '<div style="flex:1;min-width:0">' +
         '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:6px">' +
-          '<strong style="word-break:break-word">' + nameE + '</strong>' +
-          '<span class="badge ' + dc + '" style="flex-shrink:0">' + st + '</span>' +
+          '<strong style="word-break:break-word">' + esc(a.name || 'Unknown') + '</strong>' +
+          '<span class="badge ' + dc + '" style="flex-shrink:0">' + esc(a.status || '') + '</span>' +
         '</div>' +
-        '<div style="font-size:.8rem;color:var(--sub);margin-top:2px">' + qty.toLocaleString() + ' entries · ₱' + amt.toLocaleString() + '</div>' +
-        '<span class="time" style="display:block;margin-top:2px">' + ts + '<br>' + txE + '</span>' +
-      '</div></li>';
+        '<div style="font-size:.8rem;color:var(--sub);margin-top:2px">' + (Number(a.quantity)||0).toLocaleString() + ' entries · ₱' + (Number(a.amount)||0).toLocaleString() + '</div>' +
+        '<span class="time" style="display:block;margin-top:2px">' + esc(a.timestamp || '') + '<br>' + txE + '</span>' +
+      '</div></li>');
   }
-
-  list.innerHTML = h;
-  console.log('[Dashboard] Rendered ' + acts.length + ' activities');
+  list.innerHTML = frags.join('');
 }
 
 
@@ -1018,18 +974,18 @@ function renderTransactions(d) {
     b.innerHTML = '<tr><td colspan="9" class="tbl-empty">No transactions.</td></tr>';
     $('txPagination').innerHTML = ''; return;
   }
-  let h = '';
+  const frags = [];
   d.transactions.forEach(t => {
-    const sc = statusClass(t.status), txE = esc(t.transactionId);
-    h += '<tr data-tx="' + txE + '" class="clickable-row" onclick="openTxDetail(\'' + txE + '\')">' +
+    const sc = statusClass(t.status), txE = esc(t.transactionId || '');
+    frags.push('<tr data-tx="' + txE + '" class="clickable-row" onclick="openTxDetail(\'' + txE + '\')">' +
       '<td>' + esc(t.timestamp) + '</td>' +
       '<td class="mono" style="font-size:.73rem">' + txE + '</td>' +
       '<td>' + esc(t.name) + '</td><td>' + esc(t.phone) + '</td><td>' + esc(t.gcashRef) + '</td>' +
       '<td>' + Number(t.quantity).toLocaleString() + '</td><td>₱' + Number(t.amount).toLocaleString() + '</td>' +
-      '<td id="st_' + txE + '"><span class="badge ' + sc + '">' + esc(t.status) + '</span></td>' +
-      '<td>' + buildTxActions(t.status, txE) + '</td></tr>';
+      '<td><span class="badge ' + sc + '">' + esc(t.status) + '</span></td>' +
+      '<td>' + buildTxActions(t.status, txE) + '</td></tr>');
   });
-  b.innerHTML = h;
+  b.innerHTML = frags.join('');
   renderPg('txPagination', d.page, d.totalPages, 'loadTransactions');
 }
 
@@ -1059,14 +1015,14 @@ async function loadNumbers(pg) {
     const d = await adminApi('adminSoldNumbers', { page: currentPage.num, perPage: 100 });
     if (d && d.success) {
       const b = $('numBody');
-      if (!d.numbers.length) { b.innerHTML = '<tr><td colspan="6" class="tbl-empty">None.</td></tr>'; $('numPagination').innerHTML = ''; return; }
-      let h = '';
+      if (!d.numbers || !d.numbers.length) { b.innerHTML = '<tr><td colspan="6" class="tbl-empty">None.</td></tr>'; $('numPagination').innerHTML = ''; return; }
+      const frags = [];
       d.numbers.forEach(n => {
-        h += '<tr class="clickable-row" onclick="openTxDetail(\'' + esc(n.transactionId) + '\')">' +
+        frags.push('<tr class="clickable-row" onclick="openTxDetail(\'' + esc(n.transactionId) + '\')">' +
           '<td class="mono">' + esc(n.number) + '</td><td style="font-size:.73rem">' + esc(n.transactionId) + '</td>' +
-          '<td>' + esc(n.name) + '</td><td>' + esc(n.phone) + '</td><td>' + esc(n.gcashRef) + '</td><td>' + esc(n.timestamp) + '</td></tr>';
+          '<td>' + esc(n.name) + '</td><td>' + esc(n.phone) + '</td><td>' + esc(n.gcashRef) + '</td><td>' + esc(n.timestamp) + '</td></tr>');
       });
-      b.innerHTML = h;
+      b.innerHTML = frags.join('');
       renderPg('numPagination', d.page, d.totalPages, 'loadNumbers');
     }
   } catch (e) { $('numBody').innerHTML = '<tr><td colspan="6" class="tbl-empty">Error</td></tr>'; }
@@ -1075,7 +1031,7 @@ async function loadNumbers(pg) {
 
 // ── Pagination ───────────────────────────────────────────────
 function renderPg(cid, cur, tot, fn) {
-  const c = $(cid); if (tot <= 1) { c.innerHTML = ''; return; }
+  const c = $(cid); if (!c || tot <= 1) { if(c) c.innerHTML = ''; return; }
   let h = '<button class="pg-btn" onclick="' + fn + '(' + (cur - 1) + ')" ' + (cur <= 1 ? 'disabled' : '') + '>←</button>';
   const s = Math.max(1, cur - 2), e = Math.min(tot, cur + 2);
   if (s > 1) h += '<button class="pg-btn" onclick="' + fn + '(1)">1</button>';
@@ -1093,11 +1049,12 @@ function renderPg(cid, cur, tot, fn) {
 // ═══════════════════════════════════════════════════════════
 
 async function openTxDetail(txId) {
+  if (!txId) return;
   showOv('Loading...', '');
   try {
     const d = await adminApi('adminGetTransaction', { transactionId: txId });
     hideOv();
-    if (!d.success) { toast(d.error || 'Not found', 'err'); return; }
+    if (!d || !d.success) { toast(d ? d.error : 'Not found', 'err'); return; }
     renderTxDetail(d);
     $('detailModal').classList.add('on');
   } catch (e) { hideOv(); toast(e.message, 'err'); }
@@ -1105,8 +1062,8 @@ async function openTxDetail(txId) {
 
 function renderTxDetail(d) {
   const tx = d.transaction; _detailTx = tx;
-  $('detailTitle').innerHTML = '📋 Transaction Detail';
-  $('detailSub').textContent = tx.transactionId;
+  $('detailTitle').textContent = '📋 Transaction Detail';
+  $('detailSub').textContent = tx.transactionId || '';
 
   const fields = [
     ['Transaction ID', tx.transactionId, 'font-family:JetBrains Mono,monospace;color:var(--gold)'],
@@ -1116,23 +1073,24 @@ function renderTxDetail(d) {
     ['Status', '<span class="badge ' + statusClass(tx.status) + '">' + esc(tx.status) + '</span>']
   ];
   $('detailGrid').innerHTML = fields.map(f =>
-    '<div class="ri"><div class="rl">' + f[0] + '</div><div class="rv"' + (f[2] ? ' style="' + f[2] + '"' : '') + '>' +
-    (f[0] === 'Status' ? f[1] : esc(String(f[1]))) + '</div></div>'
+    '<div class="ri"><div class="rl">' + esc(f[0]) + '</div><div class="rv"' + (f[2] ? ' style="' + f[2] + '"' : '') + '>' +
+    (f[0] === 'Status' ? f[1] : esc(String(f[1]||''))) + '</div></div>'
   ).join('');
 
   let allNums = [], nh = '';
   if (tx.soldNumbers && tx.soldNumbers.length > 0) {
-    allNums = tx.soldNumbers;
-    nh = '<h3>🎰 Numbers (' + tx.soldCount.toLocaleString() + ')</h3><div class="nbox" style="max-height:300px"><div class="ngrid">' +
-      tx.soldNumbers.map(n => '<div class="ni">' + esc(n) + '</div>').join('') + '</div></div>';
-  } else if (tx.numbers && tx.numbers.trim()) {
-    const nums = tx.numbers.split(',').map(n => n.trim()).filter(n => n);
-    allNums = nums.map(n => pad6(n));
+    allNums = tx.soldNumbers.map(n => pad6(n));
+    nh = '<h3>🎰 Numbers (' + (tx.soldCount||allNums.length).toLocaleString() + ')</h3><div class="nbox" style="max-height:300px"><div class="ngrid">' +
+      allNums.slice(0, 500).map(n => '<div class="ni">' + esc(n) + '</div>').join('') + '</div></div>';
+    if (allNums.length > 500) nh += '<div style="text-align:center;padding:10px;color:var(--sub)">+' + (allNums.length - 500).toLocaleString() + ' more</div>';
+  } else if (tx.numbers && String(tx.numbers).trim()) {
+    const nums = String(tx.numbers).split(',').map(n => pad6(n.trim())).filter(n => n.length === 6);
+    allNums = nums;
     nh = '<h3>🎰 Numbers (' + nums.length.toLocaleString() + ')</h3>';
     if (tx.status === 'DECLINED') nh += '<div style="font-size:.78rem;color:var(--err);margin-bottom:8px">⚠️ Numbers freed</div>';
     const display = nums.slice(0, 500);
     nh += '<div class="nbox" style="max-height:300px"><div class="ngrid">' +
-      display.map(n => '<div class="ni" style="opacity:' + (tx.status === 'DECLINED' ? '.4' : '1') + '">' + pad6(n) + '</div>').join('') + '</div></div>';
+      display.map(n => '<div class="ni" style="opacity:' + (tx.status === 'DECLINED' ? '.4' : '1') + '">' + esc(n) + '</div>').join('') + '</div></div>';
     if (nums.length > 500) nh += '<div style="text-align:center;padding:10px;color:var(--sub)">+' + (nums.length - 500).toLocaleString() + ' more</div>';
   } else { nh = '<h3>🎰 Numbers</h3><div style="color:var(--sub);padding:10px">No data.</div>'; }
 
@@ -1147,18 +1105,18 @@ function renderTxDetail(d) {
 }
 
 function copyDetailNums() {
-  if (!_detailTx || !_detailTx._allNums.length) return toast('No numbers', 'err');
+  if (!_detailTx || !_detailTx._allNums || !_detailTx._allNums.length) return toast('No numbers', 'err');
   navigator.clipboard.writeText(_detailTx._allNums.join('\n')).then(() => toast('Copied ' + _detailTx._allNums.length.toLocaleString() + ' numbers!', 'suc')).catch(() => toast('Failed', 'err'));
 }
 
 function downloadDetailTx() {
   if (!_detailTx) return;
   const tx = _detailTx, nums = tx._allNums || [];
-  const L = [LOTTERY_NAME, '', 'TX: ' + tx.transactionId, 'Date: ' + tx.timestamp, 'Name: ' + tx.name, 'Phone: ' + tx.phone, 'GCash: ' + tx.gcashRef, 'Status: ' + tx.status, 'Qty: ' + tx.quantity, 'Amount: ₱' + Number(tx.amount).toLocaleString(), '', 'NUMBERS:', ''];
+  const L = [LOTTERY_NAME, '', 'TX: ' + (tx.transactionId||''), 'Date: ' + (tx.timestamp||''), 'Name: ' + (tx.name||''), 'Phone: ' + (tx.phone||''), 'GCash: ' + (tx.gcashRef||''), 'Status: ' + (tx.status||''), 'Qty: ' + (tx.quantity||0), 'Amount: ₱' + Number(tx.amount||0).toLocaleString(), '', 'NUMBERS:', ''];
   nums.forEach(n => L.push(n));
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob([L.join('\n')], { type: 'text/plain' }));
-  a.download = 'PisoPalaro-' + tx.transactionId + '.txt'; a.click(); toast('Downloaded!', 'suc');
+  a.download = 'PisoPalaro-' + (tx.transactionId||'TX') + '.txt'; a.click(); toast('Downloaded!', 'suc');
 }
 
 
@@ -1177,8 +1135,8 @@ async function doApprove(tx) {
   try {
     const d = await adminApi('adminApproveTransaction', { transactionId: tx });
     hideOv();
-    if (d.success) { toast('✅ Approved!', 'suc'); loadDashboard(); if (activeP === 'transactions') loadTransactions(); }
-    else toast(d.error, 'err');
+    if (d.success) { toast('✅ Approved!', 'suc'); refreshCurrentPage(); }
+    else toast(d.error || 'Failed', 'err');
   } catch (e) { hideOv(); toast(e.message, 'err'); }
 }
 
@@ -1193,8 +1151,8 @@ async function doDecline(tx) {
   try {
     const d = await adminApi('adminDeclineTransaction', { transactionId: tx });
     hideOv();
-    if (d.success) { toast('❌ Declined. ' + (d.freedNumbers || 0) + ' numbers freed.', 'suc'); loadDashboard(); if (activeP === 'transactions') loadTransactions(); }
-    else toast(d.error, 'err');
+    if (d.success) { toast('❌ Declined. ' + (d.freedNumbers || 0) + ' numbers freed.', 'suc'); refreshCurrentPage(); }
+    else toast(d.error || 'Failed', 'err');
   } catch (e) { hideOv(); toast(e.message, 'err'); }
 }
 
@@ -1209,25 +1167,32 @@ async function doDelete(tx) {
   try {
     const d = await adminApi('adminDeleteTransaction', { transactionId: tx });
     hideOv();
-    if (d.success) { toast('🗑️ Deleted. ' + (d.freedNumbers || 0) + ' numbers freed.', 'suc'); loadDashboard(); if (activeP === 'transactions') loadTransactions(); }
-    else toast(d.error, 'err');
+    if (d.success) { toast('🗑️ Deleted. ' + (d.freedNumbers || 0) + ' numbers freed.', 'suc'); refreshCurrentPage(); }
+    else toast(d.error || 'Failed', 'err');
   } catch (e) { hideOv(); toast(e.message, 'err'); }
 }
 
 function confirmDeleteAll() {
   $('confirmTitle').textContent = '🗑️ Delete ALL?';
-  $('confirmMsg').innerHTML = 'Delete <strong>everything</strong>?<br><strong style="color:var(--err)">Cannot undo!</strong>';
+  $('confirmMsg').innerHTML = 'Delete <strong>ALL transactions & numbers</strong>?<br><strong style="color:var(--err)">This cannot be undone!</strong>';
   $('confirmYes').textContent = 'Delete All'; $('confirmYes').className = 'btn-sm btn-red';
   $('confirmYes').onclick = () => doDeleteAll(); $('confirmModal').classList.add('on');
 }
 async function doDeleteAll() {
-  closeConfirm(); showOv('Deleting all...', '');
+  closeConfirm(); showOv('Deleting everything...', 'This may take a moment');
   try {
     const d = await adminApi('adminDeleteAllTransactions');
     hideOv();
-    if (d.success) { toast('🗑️ All deleted.', 'suc'); loadDashboard(); if (activeP === 'transactions') loadTransactions(); }
-    else toast(d.error, 'err');
+    if (d.success) { toast('🗑️ All deleted!', 'suc'); refreshCurrentPage(); }
+    else toast(d.error || 'Failed', 'err');
   } catch (e) { hideOv(); toast(e.message, 'err'); }
+}
+
+/** Refresh whatever page admin is currently on + dashboard */
+function refreshCurrentPage() {
+  loadDashboard();
+  if (activeP === 'transactions') loadTransactions();
+  else if (activeP === 'numbers') loadNumbers();
 }
 
 
@@ -1236,33 +1201,35 @@ async function doDeleteAll() {
 // ═══════════════════════════════════════════════════════════
 
 async function searchNumber() {
-  let q = $('searchNum').value.trim(); if (!q) return toast('Enter number.', 'err');
-  q = pad6(q.replace(/\D/g, ''));
+  let q = getDigitsOnly($('searchNum').value).substring(0, 6);
+  if (!q) return toast('Enter number.', 'err');
+  q = pad6(q);
   if (!isValidNumber(q)) return toast('1st digit must be 0 or 1.', 'err');
   $('sl1').classList.add('on'); $('searchResults').style.display = 'none';
   try {
     const d = await adminApi('adminSearchNumber', { query: q });
     $('sl1').classList.remove('on'); $('searchResults').style.display = 'block';
-    $('searchTitle').textContent = d.found ? '✅ ' + d.query + ' found' : '❌ Not found';
-    if (d.found) {
+    $('searchTitle').textContent = d.found ? '✅ ' + esc(d.query) + ' found' : '❌ Not found';
+    if (d.found && d.results && d.results.length) {
       $('searchThead').innerHTML = '<tr><th>Number</th><th>TX</th><th>Name</th><th>Phone</th><th>GCash</th><th>Date</th></tr>';
       $('searchTbody').innerHTML = d.results.map(r => '<tr class="clickable-row" onclick="openTxDetail(\'' + esc(r.transactionId) + '\')"><td class="mono">' + esc(r.number) + '</td><td>' + esc(r.transactionId) + '</td><td>' + esc(r.name) + '</td><td>' + esc(r.phone) + '</td><td>' + esc(r.gcashRef) + '</td><td>' + esc(r.timestamp) + '</td></tr>').join('');
     } else { $('searchThead').innerHTML = ''; $('searchTbody').innerHTML = '<tr><td class="tbl-empty">Not sold.</td></tr>'; }
-  } catch (e) { $('sl1').classList.remove('on'); toast('Error', 'err'); }
+  } catch (e) { $('sl1').classList.remove('on'); toast('Error: ' + e.message, 'err'); }
 }
 
 async function searchBuyerFn() {
-  const q = $('searchBuyer').value.trim(); if (!q) return toast('Enter term.', 'err');
+  const q = sanitizeInput($('searchBuyer').value, 50);
+  if (!q) return toast('Enter term.', 'err');
   $('sl2').classList.add('on'); $('searchResults').style.display = 'none';
   try {
     const d = await adminApi('adminSearchBuyer', { query: q });
     $('sl2').classList.remove('on'); $('searchResults').style.display = 'block';
-    $('searchTitle').textContent = d.total + ' result(s)';
-    if (d.total > 0) {
+    $('searchTitle').textContent = (d.total||0) + ' result(s)';
+    if (d.total > 0 && d.results) {
       $('searchThead').innerHTML = '<tr><th>Date</th><th>TX</th><th>Name</th><th>Phone</th><th>Qty</th><th>Amt</th><th>Status</th></tr>';
       $('searchTbody').innerHTML = d.results.map(r => '<tr class="clickable-row" onclick="openTxDetail(\'' + esc(r.transactionId) + '\')"><td>' + esc(r.timestamp) + '</td><td>' + esc(r.transactionId) + '</td><td>' + esc(r.name) + '</td><td>' + esc(r.phone) + '</td><td>' + Number(r.quantity).toLocaleString() + '</td><td>₱' + Number(r.amount).toLocaleString() + '</td><td><span class="badge ' + statusClass(r.status) + '">' + esc(r.status) + '</span></td></tr>').join('');
-    } else { $('searchThead').innerHTML = ''; $('searchTbody').innerHTML = '<tr><td class="tbl-empty">None.</td></tr>'; }
-  } catch (e) { $('sl2').classList.remove('on'); toast('Error', 'err'); }
+    } else { $('searchThead').innerHTML = ''; $('searchTbody').innerHTML = '<tr><td class="tbl-empty">None found.</td></tr>'; }
+  } catch (e) { $('sl2').classList.remove('on'); toast('Error: ' + e.message, 'err'); }
 }
 
 async function searchDuplicates() {
@@ -1280,10 +1247,12 @@ async function searchDuplicates() {
     } else {
       summary.style.cssText = 'background:rgba(255,59,59,.08);border:1px solid rgba(255,59,59,.2);color:var(--err)';
       summary.innerHTML = '⚠️ <strong>' + d.uniqueDuplicatedNumbers + ' duplicated!</strong>';
-      $('searchResults').style.display = 'block';
-      $('searchTitle').textContent = '🔄 Duplicates';
-      $('searchThead').innerHTML = '<tr><th>Number</th><th>TX</th><th>Name</th><th>Phone</th><th>GCash</th><th>Date</th><th>#</th></tr>';
-      $('searchTbody').innerHTML = (d.duplicates || []).map(r => '<tr class="clickable-row" style="background:rgba(255,59,59,.03)" onclick="openTxDetail(\'' + esc(r.transactionId || '') + '\')"><td class="mono" style="color:var(--err)">' + esc(r.number) + '</td><td style="font-size:.73rem">' + esc(r.transactionId || '') + '</td><td>' + esc(r.name || '') + '</td><td>' + esc(r.phone || '') + '</td><td>' + esc(r.gcashRef || '') + '</td><td>' + esc(r.timestamp || '') + '</td><td><span class="badge fail">×' + (r.occurrences || 0) + '</span></td></tr>').join('');
+      if (d.duplicates && d.duplicates.length) {
+        $('searchResults').style.display = 'block';
+        $('searchTitle').textContent = '🔄 Duplicates';
+        $('searchThead').innerHTML = '<tr><th>Number</th><th>TX</th><th>Name</th><th>Phone</th><th>GCash</th><th>Date</th><th>#</th></tr>';
+        $('searchTbody').innerHTML = d.duplicates.map(r => '<tr class="clickable-row" style="background:rgba(255,59,59,.03)" onclick="openTxDetail(\'' + esc(r.transactionId || '') + '\')"><td class="mono" style="color:var(--err)">' + esc(r.number) + '</td><td style="font-size:.73rem">' + esc(r.transactionId || '') + '</td><td>' + esc(r.name || '') + '</td><td>' + esc(r.phone || '') + '</td><td>' + esc(r.gcashRef || '') + '</td><td>' + esc(r.timestamp || '') + '</td><td><span class="badge fail">×' + (r.occurrences || 0) + '</span></td></tr>').join('');
+      }
     }
   } catch (e) { $('sl3').classList.remove('on'); $('dupeBtn').disabled = false; toast(e.message, 'err'); }
 }
@@ -1294,26 +1263,28 @@ async function searchDuplicates() {
 // ═══════════════════════════════════════════════════════════
 
 async function addNumber() {
-  const num = pad6($('addNum').value.trim().replace(/\D/g, ''));
+  const raw = getDigitsOnly($('addNum').value).substring(0, 6);
+  const num = pad6(raw);
   if (!num || !isValidNumber(num)) return toast('Invalid (1st digit 0 or 1).', 'err');
   showOv('Adding...', '');
   try {
-    const d = await adminApi('adminAddNumber', { number: num, name: $('addName').value.trim(), phone: $('addPhone').value.trim() });
+    const d = await adminApi('adminAddNumber', { number: num, name: sanitizeInput($('addName').value, MAX_NAME_LEN), phone: getDigitsOnly($('addPhone').value).substring(0, 11) });
     hideOv();
-    if (d.success) { toast('✅ ' + d.message, 'suc'); $('addNum').value = ''; $('addName').value = ''; $('addPhone').value = ''; loadDashboard(); }
-    else toast(d.error, 'err');
+    if (d.success) { toast('✅ ' + (d.message||'Added'), 'suc'); $('addNum').value = ''; $('addName').value = ''; $('addPhone').value = ''; loadDashboard(); }
+    else toast(d.error || 'Failed', 'err');
   } catch (e) { hideOv(); toast(e.message, 'err'); }
 }
 
 async function removeNumber() {
-  const num = pad6($('removeNum').value.trim().replace(/\D/g, ''));
+  const raw = getDigitsOnly($('removeNum').value).substring(0, 6);
+  const num = pad6(raw);
   if (!num || !isValidNumber(num)) return toast('Invalid.', 'err');
   showOv('Removing...', '');
   try {
     const d = await adminApi('adminRemoveNumber', { number: num });
     hideOv();
-    if (d.success) { toast('✅ ' + d.message, 'suc'); $('removeNum').value = ''; loadDashboard(); }
-    else toast(d.error, 'err');
+    if (d.success) { toast('✅ ' + (d.message||'Removed'), 'suc'); $('removeNum').value = ''; loadDashboard(); }
+    else toast(d.error || 'Failed', 'err');
   } catch (e) { hideOv(); toast(e.message, 'err'); }
 }
 
@@ -1326,7 +1297,7 @@ async function loadSettingsFn() {
   try {
     const d = await adminApi('adminInit');
     if (d && d.success && d.settings) applySettingsToForm(d.settings);
-  } catch (e) {}
+  } catch (e) { /* silent */ }
 }
 
 function applySettingsToForm(s) {
@@ -1338,7 +1309,7 @@ function applySettingsToForm(s) {
   $('setMinQty').value = s.min_quantity || '100';
   $('setMaxQty').value = s.max_quantity || '10000';
   $('setAnnouncement').value = s.announcement || '';
-  $('setMaintenance').value = s.maintenance_mode || 'false';
+  $('setMaintenance').value = String(s.maintenance_mode || 'false');
 }
 
 async function saveSettings() {
@@ -1347,19 +1318,26 @@ async function saveSettings() {
   if (np && np !== np2) return toast("Passwords don't match.", 'err');
   showOv('Saving...', '');
   const p = {
-    gcash_name: $('setGcashName').value.trim(), gcash_number: $('setGcashNum').value.trim(),
-    lottery_name: $('setLotteryName').value.trim(), draw_date: $('setDrawDate').value,
-    price_per_number: $('setPrice').value, min_quantity: $('setMinQty').value,
-    max_quantity: $('setMaxQty').value, announcement: $('setAnnouncement').value.trim(),
+    gcash_name: sanitizeInput($('setGcashName').value, 60),
+    gcash_number: sanitizeInput($('setGcashNum').value, 20),
+    lottery_name: sanitizeInput($('setLotteryName').value, 60),
+    draw_date: $('setDrawDate').value,
+    price_per_number: $('setPrice').value,
+    min_quantity: $('setMinQty').value,
+    max_quantity: $('setMaxQty').value,
+    announcement: sanitizeInput($('setAnnouncement').value, 500),
     maintenance_mode: $('setMaintenance').value
   };
   if (np) p.new_password = np;
   try {
     const d = await adminApi('adminUpdateSettings', p);
     hideOv();
-    if (d.success) { toast('✅ Saved!', 'suc'); $('setNewPass').value = ''; $('setNewPass2').value = ''; if (np) { toast('Password changed.', 'warn'); setTimeout(doLogout, 2000); } }
-    else toast(d.error, 'err');
-  } catch (e) { hideOv(); toast('Error', 'err'); }
+    if (d.success) {
+      toast('✅ Saved!', 'suc');
+      $('setNewPass').value = ''; $('setNewPass2').value = '';
+      if (np) { toast('Password changed. Logging out...', 'warn'); setTimeout(doLogout, 2000); }
+    } else toast(d.error || 'Failed', 'err');
+  } catch (e) { hideOv(); toast('Error: ' + e.message, 'err'); }
 }
 
 
@@ -1370,16 +1348,16 @@ async function saveSettings() {
 async function exportData(type) {
   showOv('Exporting...', '');
   try {
-    const d = await adminApi('adminExportData', { type });
+    const d = await adminApi('adminExportData', { type: type });
     hideOv();
-    if (!d.success) return toast(d.error, 'err');
+    if (!d || !d.success) return toast(d ? d.error : 'Failed', 'err');
     let csv = d.headers.join(',') + '\n';
-    d.data.forEach(r => { csv += r.map(c => '"' + String(c).replace(/"/g, '""') + '"').join(',') + '\n'; });
+    (d.data || []).forEach(r => { csv += r.map(c => '"' + String(c||'').replace(/"/g, '""') + '"').join(',') + '\n'; });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
     a.download = 'PisoPalaro-' + type + '-' + new Date().toISOString().slice(0, 10) + '.csv';
     a.click(); toast('Exported ' + (d.total || 0) + ' rows!', 'suc');
-  } catch (e) { hideOv(); toast('Error', 'err'); }
+  } catch (e) { hideOv(); toast('Error: ' + e.message, 'err'); }
 }
 
 
@@ -1392,12 +1370,11 @@ function startAutoRefresh() {
   _art = setInterval(() => {
     if (!TOKEN) return;
     if (activeP === 'dashboard') {
-      // Silent refresh — don't show loading
       adminApi('adminDashboard').then(d => {
         if (d && d.success) renderDashboard(d);
       }).catch(() => {});
     }
-  }, 10000); // Every 10 seconds
+  }, 15000);
 }
 
 
@@ -1448,12 +1425,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  $('confirmModal').addEventListener('click', e => { if (e.target === $('confirmModal')) closeConfirm(); });
-  $('detailModal').addEventListener('click', e => { if (e.target === $('detailModal')) closeDetail(); });
+  if ($('confirmModal')) $('confirmModal').addEventListener('click', e => { if (e.target === $('confirmModal')) closeConfirm(); });
+  if ($('detailModal')) $('detailModal').addEventListener('click', e => { if (e.target === $('detailModal')) closeDetail(); });
 });
 </script>
 </body>
-
 </html>
-
-
