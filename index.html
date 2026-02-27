@@ -284,6 +284,11 @@ tr:hover td{background:rgba(255,215,0,.02)}
   .page-sub{font-size:.75rem;margin-bottom:16px}
 }
 @media(min-width:769px){.mob-nav{display:none!important}}
+  .sold-out-banner{background:linear-gradient(135deg,rgba(255,59,59,.1),rgba(255,59,59,.03));border:1px solid rgba(255,59,59,.2);border-radius:var(--r);padding:14px 18px;margin:14px 0;text-align:center;display:none;line-height:1.7;font-size:.92rem;color:var(--err);font-weight:700}
+.sold-out-banner.on{display:block}
+.btn.sold-out{background:rgba(255,255,255,.08)!important;color:var(--sub)!important;box-shadow:none!important;cursor:not-allowed!important;pointer-events:none}
+.qp-btn.sold-out{opacity:.3;pointer-events:none;cursor:not-allowed}
+.fg input.sold-out{opacity:.4;pointer-events:none}
 </style>
 </head>
 <body>
@@ -293,6 +298,7 @@ tr:hover td{background:rgba(255,215,0,.02)}
 <div class="confirm-modal" id="confirmModal"><div class="confirm-box"><h3 id="confirmTitle"></h3><p id="confirmMsg"></p><div class="confirm-btns"><button class="btn-sm btn-red" id="confirmYes">Yes</button><button class="btn-sm btn-blue" onclick="closeConfirm()">Cancel</button></div></div></div>
 <div class="detail-modal" id="detailModal"><div class="detail-box"><div style="display:flex;justify-content:space-between;align-items:flex-start"><div><h2 id="detailTitle">📋 Transaction Detail</h2><div class="detail-sub" id="detailSub"></div></div><button class="btn-sm btn-blue" onclick="closeDetail()" style="flex-shrink:0">✕ Close</button></div><div class="detail-grid" id="detailGrid"></div><div class="detail-nums" id="detailNums"></div><div class="detail-actions" id="detailActions"></div></div></div>
 <div class="maint-overlay" id="maintOverlay"><div class="mi">🔧</div><h2>Under Maintenance</h2><p>Purchases temporarily paused.</p></div>
+<div class="maint-overlay" id="soldOutOverlay"><div class="mi">🎉</div><h2>SOLD OUT!</h2><p>All 200,000 numbers have been sold.<br>Thank you for your support!<br><br><strong style="color:var(--gold)">Stay tuned for the draw date announcement.</strong></p></div>
 
 <!-- PUBLIC PAGE -->
 <div id="publicPage">
@@ -305,6 +311,7 @@ tr:hover td{background:rgba(255,215,0,.02)}
 </header>
 <div class="draw-banner" id="drawBanner"><div class="db-label">🎯 Draw Date</div><div class="db-date" id="drawDateText"></div></div>
 <div class="announce-banner" id="announceBanner"><span style="font-size:1.2rem;margin-right:6px">📢</span><span id="announceText"></span></div>
+<div class="sold-out-banner" id="soldOutBanner">🚫 ALL NUMBERS HAVE BEEN SOLD OUT!</div>
 <div class="conn checking" id="connBar"><div class="dot"></div><span id="connTxt">Connecting...</span></div>
 <div id="errPanel" class="err-panel hide"><h3>⚠️ Connection Failed</h3><div id="errDetail"></div></div>
 <div class="info-bar">
@@ -536,7 +543,7 @@ tr:hover td{background:rgba(255,215,0,.02)}
 
 <script>
 /* ═══════════════════════════════════════════════════════════
-   PISO PALARO — Frontend v4.2 (All Bugs Fixed)
+   PISO PALARO — Frontend v4.3 (Sold Out Protection Added)
    
    FIXES APPLIED:
    1. maintenance_mode string "false" no longer treated as truthy
@@ -546,9 +553,11 @@ tr:hover td{background:rgba(255,215,0,.02)}
    5. Escaped single quotes in onclick attribute strings
    6. Removed duplicate HTML (was pasted twice)
    7. Connection re-check on purchase failure
+   8. confirm=DELETE_ALL for bulk delete
+   9. SOLD OUT protection — disable purchase when 0 remaining
    ═══════════════════════════════════════════════════════════ */
 
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwq7grZ-IzjEUPj_Nz9MBdwzo6Lb_VrKCvAEFMKh8mtWCYQ2SH6meyiAuKNfwVNlav5MA/exec'; // ← SET YOUR DEPLOYMENT URL HERE
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwq7grZ-IzjEUPj_Nz9MBdwzo6Lb_VrKCvAEFMKh8mtWCYQ2SH6meyiAuKNfwVNlav5MA/exec';
 const ADMIN_SECRET = 'admin';
 const TOTAL_POOL = 200000;
 const MAX_RETRY = 3;
@@ -564,20 +573,19 @@ let currentPage = { tx: 1, num: 1 }, IS_ADMIN_MODE = false;
 let _detailTx = null;
 let _art = null, _kat = null, activeP = 'dashboard';
 let _purchaseInProgress = false;
+let isSoldOut = false; /* SOLD OUT FIX */
 
 function $(id) { return document.getElementById(id); }
 function show(id) { $(id).classList.remove('hide'); }
 function hide(id) { $(id).classList.add('hide'); }
 function pad6(n) { return String(n).padStart(6, '0').substring(0, 6); }
 
-/* FIX #2: Enhanced esc() that also escapes single quotes for safe onclick attrs */
 function esc(s) {
   var d = document.createElement('div');
   d.appendChild(document.createTextNode(String(s)));
   return d.innerHTML;
 }
 
-/* Escape for use inside single-quoted onclick attribute strings */
 function escAttr(s) {
   return esc(s).replace(/'/g, '&#39;').replace(/\\/g, '\\\\');
 }
@@ -619,7 +627,6 @@ function cpField(id) {
   }
 }
 
-/* FIX #13: Fallback copy for non-HTTPS / older browsers */
 function fallbackCopy(text) {
   var ta = document.createElement('textarea');
   ta.value = text;
@@ -688,6 +695,65 @@ function setTodayDate() {
   $('dateToday').textContent = new Date().toLocaleDateString('en-PH', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
 }
 
+/* SOLD OUT FIX — Master function to enable/disable purchase UI */
+function applySoldOutState(sold, remaining) {
+  isSoldOut = remaining <= 0 && sold >= TOTAL_POOL;
+
+  var banner = $('soldOutBanner');
+  var overlay = $('soldOutOverlay');
+  var buyBtns = document.querySelectorAll('#p1 .btn.b1, #p2 .btn.b1');
+  var qpBtns = document.querySelectorAll('.qp-btn');
+  var qtyInput = $('fQ');
+  var nameInput = $('fN');
+  var phoneInput = $('fP');
+  var refInput = $('fR');
+
+  if (isSoldOut) {
+    /* Show sold out indicators */
+    if (banner) banner.classList.add('on');
+    if (overlay) overlay.classList.add('on');
+
+    /* Disable all purchase buttons */
+    buyBtns.forEach(function(btn) {
+      btn.classList.add('sold-out');
+      btn.disabled = true;
+      btn.textContent = '🚫 SOLD OUT';
+    });
+
+    /* Disable quick pick buttons */
+    qpBtns.forEach(function(btn) {
+      btn.classList.add('sold-out');
+    });
+
+    /* Disable inputs */
+    [qtyInput, nameInput, phoneInput, refInput].forEach(function(inp) {
+      if (inp) { inp.classList.add('sold-out'); inp.disabled = true; }
+    });
+
+  } else {
+    /* Remove sold out state */
+    if (banner) banner.classList.remove('on');
+    if (overlay) overlay.classList.remove('on');
+
+    buyBtns.forEach(function(btn) {
+      btn.classList.remove('sold-out');
+      btn.disabled = false;
+    });
+
+    /* Restore button text */
+    var continueBtn = document.querySelector('#p1 .btn.b1');
+    var confirmBtn = $('buyBtn');
+    if (continueBtn) continueBtn.textContent = 'Continue to Payment →';
+    if (confirmBtn) confirmBtn.textContent = '✓ Confirm Entry';
+
+    qpBtns.forEach(function(btn) { btn.classList.remove('sold-out'); });
+
+    [qtyInput, nameInput, phoneInput, refInput].forEach(function(inp) {
+      if (inp) { inp.classList.remove('sold-out'); inp.disabled = false; }
+    });
+  }
+}
+
 // ── Settings ─────────────────────────────────────────────────
 function applyPublicSettings(s) {
   if (s.lottery_name) {
@@ -715,7 +781,6 @@ function applyPublicSettings(s) {
     $('announceBanner').style.display = 'block';
   } else $('announceBanner').style.display = 'none';
 
-  /* FIX #1 & #4: Proper boolean check for maintenance_mode */
   if (s.maintenance_mode === true || s.maintenance_mode === 'true') {
     $('maintOverlay').classList.add('on');
   } else {
@@ -730,10 +795,33 @@ function updateProgress(sold, rem) {
   var f = $('progressFill'), t = $('availTxt');
   f.style.width = pct + '%';
   f.classList.remove('mid', 'low'); t.classList.remove('high', 'mid', 'low');
-  if (pct > 60) { t.textContent = 'Plenty available (' + rem.toLocaleString() + ')'; t.classList.add('high'); }
-  else if (pct > 30) { t.textContent = 'Selling fast (' + rem.toLocaleString() + ')'; t.classList.add('mid'); f.classList.add('mid'); }
-  else if (pct > 10) { t.textContent = 'Running low (' + rem.toLocaleString() + ')'; t.classList.add('low'); f.classList.add('low'); }
-  else { t.textContent = pct > 0 ? 'Almost sold out!' : 'Sold out'; t.classList.add('low'); f.classList.add('low'); }
+
+  /* SOLD OUT FIX — check and apply sold out state */
+  applySoldOutState(sold, rem);
+
+  if (isSoldOut) {
+    t.textContent = '🚫 SOLD OUT (0 remaining)';
+    t.classList.add('low');
+    f.classList.add('low');
+    f.style.width = '0%';
+    $('priceTag').textContent = '🚫 SOLD OUT';
+    $('priceTag').style.background = 'linear-gradient(135deg, #ff3b3b, #ff6b6b)';
+    $('priceTag').style.color = '#fff';
+  } else if (pct > 60) {
+    t.textContent = 'Plenty available (' + rem.toLocaleString() + ')';
+    t.classList.add('high');
+    $('priceTag').style.background = '';
+    $('priceTag').style.color = '';
+  } else if (pct > 30) {
+    t.textContent = 'Selling fast (' + rem.toLocaleString() + ')';
+    t.classList.add('mid'); f.classList.add('mid');
+  } else if (pct > 10) {
+    t.textContent = 'Running low (' + rem.toLocaleString() + ')';
+    t.classList.add('low'); f.classList.add('low');
+  } else {
+    t.textContent = pct > 0 ? 'Almost sold out! (' + rem.toLocaleString() + ')' : '🚫 SOLD OUT';
+    t.classList.add('low'); f.classList.add('low');
+  }
 }
 
 function checkConnection() {
@@ -749,7 +837,6 @@ function checkConnection() {
     if (s && s.success) applyPublicSettings(s);
     if (st && st.success) updateProgress(st.sold, st.remaining);
   }).catch(function(err) {
-    /* FIX #8: Reset serverOnline on connection failure */
     serverOnline = false;
     bar.className = 'conn offline';
     txt.textContent = '✗ ' + (err.message === 'TIMEOUT' ? 'Timed out' : err.message);
@@ -774,12 +861,17 @@ function updatePhoneStatus() {
 
 // ── Quantity ──────────────────────────────────────────────────
 function addQty(n, el) {
+  if (isSoldOut) return toast('🚫 Sold out!', 'err'); /* SOLD OUT FIX */
   var cur = parseInt($('fQ').value) || 0, next = cur + n;
   if (next > MAX_QTY) { if (cur >= MAX_QTY) return toast('Already at max.', 'warn'); next = MAX_QTY; }
   $('fQ').value = next; calc();
   if (el) { el.classList.add('qp-added'); setTimeout(function() { el.classList.remove('qp-added'); }, 350); }
 }
-function setMaxQtyFn() { if (parseInt($('fQ').value) === MAX_QTY) return toast('Already at max.', 'warn'); $('fQ').value = MAX_QTY; calc(); }
+function setMaxQtyFn() {
+  if (isSoldOut) return toast('🚫 Sold out!', 'err'); /* SOLD OUT FIX */
+  if (parseInt($('fQ').value) === MAX_QTY) return toast('Already at max.', 'warn');
+  $('fQ').value = MAX_QTY; calc();
+}
 function resetQty() { $('fQ').value = ''; calc(); }
 function calc() {
   var v = Math.min(MAX_QTY, Math.max(0, parseInt($('fQ').value) || 0));
@@ -795,6 +887,9 @@ function stpSet(n) {
   $('l2').className = n >= 3 ? 'sln on' : 'sln';
 }
 function go2() {
+  /* SOLD OUT FIX — block navigation to payment if sold out */
+  if (isSoldOut) return toast('🚫 All numbers are sold out!', 'err');
+
   var nm = sanitizeInput($('fN').value, MAX_NAME_LEN), ph = $('fP').value.trim(), qt = parseInt($('fQ').value);
   if (!nm || nm.length < 2) return toast('Enter full name.', 'err');
   if (!isValidPhone(ph)) return toast('Phone: 11 digits starting with 09.', 'err');
@@ -809,6 +904,10 @@ function go1() { hide('p2'); show('p1'); stpSet(1); }
 // ── Purchase ─────────────────────────────────────────────────
 function submitPurchase() {
   if (_purchaseInProgress) return toast('Already processing...', 'warn');
+
+  /* SOLD OUT FIX — final check before purchase */
+  if (isSoldOut) return toast('🚫 All numbers are sold out!', 'err');
+
   var ref = $('fR').value.trim();
   if (!ref) return toast('Enter GCash ref.', 'err');
   if (!/^\d{1,13}$/.test(ref)) return toast('Digits only (max 13).', 'err');
@@ -847,7 +946,12 @@ function doAttemptPurchase(nm, ph, qt, ref, tryN) {
       } else {
         hideOv(); $('buyBtn').disabled = false; _purchaseInProgress = false;
         toast(d.error || 'Failed.', 'err');
-        /* FIX #7: Re-check connection on non-retryable failure */
+
+        /* SOLD OUT FIX — check if error indicates sold out */
+        if (d.error && (d.error.indexOf('0 numbers left') !== -1 || d.error.indexOf('Only 0') !== -1)) {
+          updateProgress(TOTAL_POOL, 0);
+        }
+
         if (!d.retryable) checkConnection();
       }
     })
@@ -856,7 +960,6 @@ function doAttemptPurchase(nm, ph, qt, ref, tryN) {
       else {
         hideOv(); $('buyBtn').disabled = false; _purchaseInProgress = false;
         toast(err.message, 'err');
-        /* FIX #8: Mark offline and re-check */
         serverOnline = false;
         checkConnection();
       }
@@ -865,7 +968,6 @@ function doAttemptPurchase(nm, ph, qt, ref, tryN) {
 
 // ── Receipt ──────────────────────────────────────────────────
 function censorName(n) { return n.trim().split(/\s+/).map(function(w, i) { return i === 0 ? w : w.charAt(0) + '***'; }).join(' '); }
-/* FIX #9: Safe censorPhone for short inputs */
 function censorPhone(p) {
   if (!p || p.length < 5) return p || '';
   return p.substring(0, 5) + '******';
@@ -908,7 +1010,6 @@ function dlA() {
   a.download = 'PisoPalaro-' + $('rI').textContent + '.txt'; a.click(); toast('Downloaded!', 'suc');
 }
 
-/* FIX #12: Print with fallback */
 function prA() {
   var w;
   try { w = window.open('', '_blank'); } catch(e) {}
@@ -932,7 +1033,7 @@ function again() {
   $('dT').textContent = '₱ 0.00'; $('phoneErr').style.display = 'none'; $('phoneOk').style.display = 'none';
   $('fP').style.borderColor = 'rgba(255,255,255,.1)';
   hide('p2'); show('p1'); stpSet(1); myNums = [];
-  _purchaseInProgress = false; /* FIX #10: Reset purchase flag */
+  _purchaseInProgress = false;
   scrollTo({ top: 0, behavior: 'smooth' }); checkConnection();
 }
 
@@ -962,7 +1063,7 @@ function doLogin() {
     if (d.success) {
       TOKEN = d.token; $('adminUser').textContent = d.username || u;
       $('adminLogin').style.display = 'none'; $('adminPanel').style.display = 'block';
-      $('loginPass').value = ''; /* FIX #3: Clear password from memory */
+      $('loginPass').value = '';
       toast('Welcome!', 'suc');
       showOv('Loading dashboard...', '');
       loadDashboard().then(function() { hideOv(); }).catch(function() { hideOv(); });
@@ -987,22 +1088,16 @@ function startKeepAlive() {
   _kat = setInterval(function() { if (TOKEN) fetch(SCRIPT_URL + '?action=health', { redirect: 'follow' }).catch(function() {}); }, 55000);
 }
 
-/* FIX #5: goPage uses data-page attributes for reliable nav matching */
 function goPage(n) {
   activeP = n;
   document.querySelectorAll('.page').forEach(function(p) { p.classList.remove('active'); });
   $('pg-' + n).classList.add('active');
-
-  /* Update sidebar nav */
   document.querySelectorAll('.sidebar .nav-item').forEach(function(x) { x.classList.remove('active'); });
   document.querySelectorAll('.sidebar [data-page="' + n + '"]').forEach(function(x) { x.classList.add('active'); });
-
-  /* Update mobile nav using data-page attribute */
   document.querySelectorAll('.mob-nav .nav-item').forEach(function(x) {
     x.classList.remove('active');
     if (x.getAttribute('data-page') === n) x.classList.add('active');
   });
-
   if (n === 'dashboard') loadDashboard();
   else if (n === 'transactions') loadTransactions();
   else if (n === 'numbers') loadNumbers();
@@ -1049,7 +1144,6 @@ function renderDashboard(d) {
   var h = '';
   for (var i = 0; i < acts.length; i++) {
     var a = acts[i], dc = statusClass(a.status);
-    /* FIX #2: Use escAttr for onclick attribute safety */
     h += '<li style="cursor:pointer;align-items:flex-start" onclick="openTxDetail(\'' + escAttr(a.transactionId) + '\')">' +
       '<div class="dot ' + dc + '" style="margin-top:4px;flex-shrink:0"></div>' +
       '<div style="flex:1;min-width:0">' +
@@ -1065,7 +1159,6 @@ function renderDashboard(d) {
 }
 
 // ── TRANSACTIONS ─────────────────────────────────────────────
-/* FIX #2: All onclick builders use escAttr */
 function buildTxActions(status, txId) {
   var safe = escAttr(txId);
   var a = '<div class="tx-actions">';
@@ -1294,10 +1387,9 @@ function confirmDeleteAll() {
   $('confirmYes').textContent = 'Delete All'; $('confirmYes').className = 'btn-sm btn-red';
   $('confirmYes').onclick = function() { doDeleteAll(); }; $('confirmModal').classList.add('on');
 }
-// ✅ FIXED — add confirm: 'DELETE_ALL' parameter
 function doDeleteAll() {
   closeConfirm(); showOv('Deleting all transactions & numbers...', 'This may take a moment');
-  adminApi('adminDeleteAllTransactions', { confirm: 'DELETE_ALL' }).then(function(d) {
+  adminApi('adminDeleteAllTransactions', { confirm: 'DELETE_ALL' }).then(function(d) { /* FIX #8 */
     hideOv();
     if (d.success) { toast('🗑️ All deleted!', 'suc'); refreshAfterAction(); }
     else toast(d.error || 'Failed', 'err');
@@ -1484,6 +1576,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
     checkConnection();
     setInterval(setTodayDate, 60000);
+
+    /* SOLD OUT FIX — periodically re-check stats for sold out status */
+    setInterval(function() {
+      if (!IS_ADMIN_MODE && serverOnline) {
+        safeFetch(SCRIPT_URL + '?action=stats', 15000).then(function(st) {
+          if (st && st.success) updateProgress(st.sold, st.remaining);
+        }).catch(function() {});
+      }
+    }, 30000);
   }
 
   document.addEventListener('keydown', function(e) {
@@ -1500,5 +1601,6 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 </body>
 </html>
+
 
 
