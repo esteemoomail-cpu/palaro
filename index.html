@@ -380,7 +380,7 @@ tr:hover td{background:rgba(255,215,0,.02)}
   <div class="ref-row"><div class="ref-label">📌 Transaction ID</div><div class="ref-val-wrap"><span class="ref-val" id="rI"></span><button class="copy-btn" onclick="cpField('rI')">Copy</button></div></div>
   <div class="ref-row" style="margin-bottom:14px"><div class="ref-label">💳 GCash Reference #</div><div class="ref-val-wrap"><span class="ref-val" id="rR"></span><button class="copy-btn" onclick="cpField('rR')">Copy</button></div></div>
   <div class="rd">
-    <div class="ri"><div class="rl">Date</div><div class="rv" id="rD"></div></div>
+    <div class="ri"><div class="rl">Timestamp</div><div class="rv" id="rD"></div></div>
     <div class="ri"><div class="rl">Name</div><div class="rv" id="rN"></div></div>
     <div class="ri"><div class="rl">Phone</div><div class="rv" id="rP"></div></div>
     <div class="ri"><div class="rl">Quantity</div><div class="rv" id="rQ"></div></div>
@@ -474,8 +474,8 @@ tr:hover td{background:rgba(255,215,0,.02)}
       </div>
     </div>
     <div style="overflow-x:auto">
-      <table><thead><tr><th>Date</th><th>Time</th><th>TX ID</th><th>Name</th><th>Phone</th><th>GCash</th><th>Qty</th><th>Amt</th><th>Status</th><th>Actions</th></tr></thead>
-      <tbody id="txBody"><tr><td colspan="10" class="tbl-empty">Loading...</td></tr></tbody></table>
+      <table><thead><tr><th>Timestamp</th><th>TX ID</th><th>Name</th><th>Phone</th><th>GCash</th><th>Qty</th><th>Amt</th><th>Status</th><th>Actions</th></tr></thead>
+      <tbody id="txBody"><tr><td colspan="9" class="tbl-empty">Loading...</td></tr></tbody></table>
     </div>
     <div class="pagination" id="txPagination"></div>
   </div>
@@ -493,8 +493,8 @@ tr:hover td{background:rgba(255,215,0,.02)}
       </div>
     </div>
     <div style="overflow-x:auto">
-      <table><thead><tr><th>Number</th><th>TX ID</th><th>Name</th><th>Phone</th><th>GCash</th><th>Date</th><th>Time</th></tr></thead>
-      <tbody id="numBody"><tr><td colspan="7" class="tbl-empty">Loading...</td></tr></tbody></table>
+      <table><thead><tr><th>Number</th><th>TX ID</th><th>Name</th><th>Phone</th><th>GCash</th><th>Timestamp</th></tr></thead>
+      <tbody id="numBody"><tr><td colspan="6" class="tbl-empty">Loading...</td></tr></tbody></table>
     </div>
     <div class="pagination" id="numPagination"></div>
   </div>
@@ -535,11 +535,14 @@ tr:hover td{background:rgba(255,215,0,.02)}
 
 <script>
 /* ═══════════════════════════════════════════════════════════
-   PISO PALARO — Frontend v4.0 (Optimized)
-   Numbers: 000000–199999 (1st digit 0|1, rest 0-9)
+   PISO PALARO — Frontend v4.1 (Fixed)
+   - Removed time column (merged into timestamp)
+   - TX ID with hyphens
+   - Delete safety: must decline first if numbers exist
+   - Auth failure handling
    ═══════════════════════════════════════════════════════════ */
 
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwq7grZ-IzjEUPj_Nz9MBdwzo6Lb_VrKCvAEFMKh8mtWCYQ2SH6meyiAuKNfwVNlav5MA/exec'; // ← PASTE YOUR DEPLOYED WEB APP URL HERE
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwq7grZ-IzjEUPj_Nz9MBdwzo6Lb_VrKCvAEFMKh8mtWCYQ2SH6meyiAuKNfwVNlav5MA/exec';
 const ADMIN_SECRET = 'admin';
 const TOTAL_POOL = 200000;
 const MAX_RETRY = 3;
@@ -555,7 +558,6 @@ let currentPage = { tx: 1, num: 1 }, IS_ADMIN_MODE = false;
 let _detailTx = null;
 let _art = null, _kat = null, activeP = 'dashboard';
 let _purchaseInProgress = false;
-let _fetchController = null;
 
 function $(id) { return document.getElementById(id); }
 function show(id) { $(id).classList.remove('hide'); }
@@ -821,7 +823,6 @@ function showResult(d, nm, ph, qt, ref) {
   $('rA').textContent = '₱ ' + Number(d.amount).toLocaleString(undefined, { minimumFractionDigits: 2 });
   $('rR').textContent = ref; $('rS').textContent = '⏳ PENDING';
   $('rC').textContent = myNums.length.toLocaleString();
-  // Build numbers grid using DocumentFragment for performance
   var frag = document.createDocumentFragment();
   myNums.forEach(function(n) {
     var div = document.createElement('div');
@@ -865,7 +866,15 @@ function again() {
 
 function adminApi(a, p) {
   p = p || {}; p.action = a; p.token = TOKEN;
-  return safeFetch(SCRIPT_URL + '?' + new URLSearchParams(p), 120000);
+  return safeFetch(SCRIPT_URL + '?' + new URLSearchParams(p), 120000).then(function(d) {
+    // Handle auth failures globally
+    if (d && d.authFailed) {
+      toast('Session expired. Please login again.', 'err');
+      doLogout();
+      throw new Error('AUTH_FAILED');
+    }
+    return d;
+  });
 }
 
 function doLogin() {
@@ -882,7 +891,10 @@ function doLogin() {
       loadDashboard().then(function() { hideOv(); }).catch(function() { hideOv(); });
       startAutoRefresh(); startKeepAlive();
     } else toast(d.error || 'Login failed', 'err');
-  }).catch(function(e) { toast(e.message, 'err'); hideOv(); $('loginBtn').disabled = false; });
+  }).catch(function(e) {
+    if (e.message !== 'AUTH_FAILED') toast(e.message, 'err');
+    hideOv(); $('loginBtn').disabled = false;
+  });
 }
 
 function doLogout() {
@@ -923,7 +935,7 @@ function loadDashboard() {
     if (d && d.success) renderDashboard(d);
     else $('feedList').innerHTML = '<li class="tbl-empty">Failed. <button class="retry-btn" onclick="loadDashboard()">Retry</button></li>';
   }).catch(function(e) {
-    $('feedList').innerHTML = '<li class="tbl-empty">Error: ' + esc(e.message) + ' <button class="retry-btn" onclick="loadDashboard()">Retry</button></li>';
+    if (e.message !== 'AUTH_FAILED') $('feedList').innerHTML = '<li class="tbl-empty">Error: ' + esc(e.message) + ' <button class="retry-btn" onclick="loadDashboard()">Retry</button></li>';
   });
 }
 
@@ -980,14 +992,14 @@ function buildTxActions(status, txId) {
 function renderTransactions(d) {
   var b = $('txBody');
   if (!d.transactions || !d.transactions.length) {
-    b.innerHTML = '<tr><td colspan="10" class="tbl-empty">No transactions.</td></tr>';
+    b.innerHTML = '<tr><td colspan="9" class="tbl-empty">No transactions.</td></tr>';
     $('txPagination').innerHTML = ''; return;
   }
   var h = '';
   d.transactions.forEach(function(t) {
     var sc = statusClass(t.status), txE = esc(t.transactionId);
     h += '<tr data-tx="' + txE + '" class="clickable-row" onclick="openTxDetail(\'' + txE + '\')">' +
-      '<td>' + esc(t.date) + '</td><td>' + esc(t.time) + '</td>' +
+      '<td>' + esc(t.timestamp) + '</td>' +
       '<td class="mono" style="font-size:.73rem">' + txE + '</td>' +
       '<td>' + esc(t.name) + '</td><td>' + esc(t.phone) + '</td><td>' + esc(t.gcashRef) + '</td>' +
       '<td>' + Number(t.quantity).toLocaleString() + '</td><td>₱' + Number(t.amount).toLocaleString() + '</td>' +
@@ -1002,11 +1014,13 @@ function refreshTransactions() { loadTransactions(); }
 
 function loadTransactions(pg) {
   if (pg) currentPage.tx = pg;
-  $('txBody').innerHTML = '<tr><td colspan="10" class="tbl-empty">Loading...</td></tr>';
+  $('txBody').innerHTML = '<tr><td colspan="9" class="tbl-empty">Loading...</td></tr>';
   adminApi('adminTransactions', { page: currentPage.tx, perPage: 30 }).then(function(d) {
     if (d && d.success) renderTransactions(d);
-    else $('txBody').innerHTML = '<tr><td colspan="10" class="tbl-empty">Error loading.</td></tr>';
-  }).catch(function(e) { $('txBody').innerHTML = '<tr><td colspan="10" class="tbl-empty">Error: ' + esc(e.message) + '</td></tr>'; });
+    else $('txBody').innerHTML = '<tr><td colspan="9" class="tbl-empty">Error loading.</td></tr>';
+  }).catch(function(e) {
+    if (e.message !== 'AUTH_FAILED') $('txBody').innerHTML = '<tr><td colspan="9" class="tbl-empty">Error: ' + esc(e.message) + '</td></tr>';
+  });
 }
 
 // ── NUMBERS ──────────────────────────────────────────────────
@@ -1014,22 +1028,24 @@ function refreshNumbers() { loadNumbers(); }
 
 function loadNumbers(pg) {
   if (pg) currentPage.num = pg;
-  $('numBody').innerHTML = '<tr><td colspan="7" class="tbl-empty">Loading...</td></tr>';
+  $('numBody').innerHTML = '<tr><td colspan="6" class="tbl-empty">Loading...</td></tr>';
   adminApi('adminSoldNumbers', { page: currentPage.num, perPage: 100 }).then(function(d) {
     if (d && d.success) {
       var b = $('numBody');
-      if (!d.numbers.length) { b.innerHTML = '<tr><td colspan="7" class="tbl-empty">None.</td></tr>'; $('numPagination').innerHTML = ''; return; }
+      if (!d.numbers.length) { b.innerHTML = '<tr><td colspan="6" class="tbl-empty">None.</td></tr>'; $('numPagination').innerHTML = ''; return; }
       var h = '';
       d.numbers.forEach(function(n) {
         h += '<tr class="clickable-row" onclick="openTxDetail(\'' + esc(n.transactionId) + '\')">' +
           '<td class="mono">' + esc(n.number) + '</td><td style="font-size:.73rem">' + esc(n.transactionId) + '</td>' +
           '<td>' + esc(n.name) + '</td><td>' + esc(n.phone) + '</td><td>' + esc(n.gcashRef) + '</td>' +
-          '<td>' + esc(n.date) + '</td><td>' + esc(n.time) + '</td></tr>';
+          '<td>' + esc(n.timestamp) + '</td></tr>';
       });
       b.innerHTML = h;
       renderPg('numPagination', d.page, d.totalPages, 'loadNumbers');
     }
-  }).catch(function(e) { $('numBody').innerHTML = '<tr><td colspan="7" class="tbl-empty">Error</td></tr>'; });
+  }).catch(function(e) {
+    if (e.message !== 'AUTH_FAILED') $('numBody').innerHTML = '<tr><td colspan="6" class="tbl-empty">Error</td></tr>';
+  });
 }
 
 // ── Pagination ───────────────────────────────────────────────
@@ -1054,7 +1070,10 @@ function openTxDetail(txId) {
     if (!d.success) { toast(d.error || 'Not found', 'err'); return; }
     renderTxDetail(d);
     $('detailModal').classList.add('on');
-  }).catch(function(e) { hideOv(); toast(e.message, 'err'); });
+  }).catch(function(e) {
+    hideOv();
+    if (e.message !== 'AUTH_FAILED') toast(e.message, 'err');
+  });
 }
 
 function renderTxDetail(d) {
@@ -1064,14 +1083,24 @@ function renderTxDetail(d) {
 
   var fields = [
     ['Transaction ID', tx.transactionId, 'font-family:JetBrains Mono,monospace;color:var(--gold)'],
-    ['Date', tx.date], ['Time', tx.time], ['Name', tx.name], ['Phone', tx.phone],
+    ['Timestamp', tx.timestamp],
+    ['Name', tx.name], ['Phone', tx.phone],
     ['GCash Ref', tx.gcashRef], ['Quantity', Number(tx.quantity).toLocaleString()],
     ['Amount', '₱' + Number(tx.amount).toLocaleString(), 'color:var(--gold);font-weight:800'],
     ['Status', '<span class="badge ' + statusClass(tx.status) + '">' + esc(tx.status) + '</span>']
   ];
+
+  // Show registry status
+  if (tx.numbersStillInRegistry !== undefined) {
+    var regText = tx.numbersStillInRegistry
+      ? '<span style="color:var(--ok)">✓ ' + tx.soldCount + ' in registry</span>'
+      : '<span style="color:var(--sub)">— Freed / None</span>';
+    fields.push(['Numbers in Registry', regText]);
+  }
+
   $('detailGrid').innerHTML = fields.map(function(f) {
     return '<div class="ri"><div class="rl">' + esc(f[0]) + '</div><div class="rv"' + (f[2] ? ' style="' + f[2] + '"' : '') + '>' +
-    (f[0] === 'Status' ? f[1] : esc(String(f[1]))) + '</div></div>';
+    (f[0] === 'Status' || f[0] === 'Numbers in Registry' ? f[1] : esc(String(f[1]))) + '</div></div>';
   }).join('');
 
   var allNums = [], nh = '';
@@ -1086,7 +1115,7 @@ function renderTxDetail(d) {
     var nums = tx.numbers.split(',').map(function(n) { return n.trim(); }).filter(function(n) { return n; });
     allNums = nums.map(function(n) { return pad6(n); });
     nh = '<h3>🎰 Numbers (' + nums.length.toLocaleString() + ')</h3>';
-    if (tx.status === 'DECLINED') nh += '<div style="font-size:.78rem;color:var(--err);margin-bottom:8px">⚠️ Numbers freed</div>';
+    if (tx.status === 'DECLINED') nh += '<div style="font-size:.78rem;color:var(--err);margin-bottom:8px">⚠️ Numbers freed from registry</div>';
     var display2 = allNums.slice(0, 500);
     nh += '<div class="nbox" style="max-height:300px"><div class="ngrid">' +
       display2.map(function(n) { return '<div class="ni" style="opacity:' + (tx.status === 'DECLINED' ? '.4' : '1') + '">' + esc(n) + '</div>'; }).join('') + '</div></div>';
@@ -1100,6 +1129,10 @@ function renderTxDetail(d) {
   var ah = '';
   if (allNums.length > 0) ah += '<button class="btn-sm btn-blue" onclick="copyDetailNums()">📋 Copy</button><button class="btn-sm btn-green" onclick="downloadDetailTx()">⬇ Download</button>';
   if (tx.status === 'PENDING') ah += '<button class="btn-sm btn-green" onclick="closeDetail();confirmApprove(\'' + txE + '\')">✅ Approve</button><button class="btn-sm btn-red" onclick="closeDetail();confirmDecline(\'' + txE + '\')">❌ Decline</button>';
+  // Only show delete button if numbers are NOT in registry
+  if (!tx.numbersStillInRegistry) {
+    ah += '<button class="btn-sm btn-orange" onclick="closeDetail();confirmDelete(\'' + txE + '\')">🗑 Delete</button>';
+  }
   ah += '<button class="btn-sm btn-blue" onclick="closeDetail()">Close</button>';
   $('detailActions').innerHTML = ah;
 }
@@ -1114,7 +1147,7 @@ function copyDetailNums() {
 function downloadDetailTx() {
   if (!_detailTx) return;
   var tx = _detailTx, nums = tx._allNums || [];
-  var L = [LOTTERY_NAME, '', 'TX: ' + tx.transactionId, 'Date: ' + tx.date, 'Time: ' + tx.time, 'Name: ' + tx.name, 'Phone: ' + tx.phone, 'GCash: ' + tx.gcashRef, 'Status: ' + tx.status, 'Qty: ' + tx.quantity, 'Amount: ₱' + Number(tx.amount).toLocaleString(), '', 'NUMBERS:', ''];
+  var L = [LOTTERY_NAME, '', 'TX: ' + tx.transactionId, 'Timestamp: ' + tx.timestamp, 'Name: ' + tx.name, 'Phone: ' + tx.phone, 'GCash: ' + tx.gcashRef, 'Status: ' + tx.status, 'Qty: ' + tx.quantity, 'Amount: ₱' + Number(tx.amount).toLocaleString(), '', 'NUMBERS:', ''];
   nums.forEach(function(n) { L.push(n); });
   var a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob([L.join('\n')], { type: 'text/plain' }));
@@ -1134,12 +1167,12 @@ function doApprove(tx) {
     hideOv();
     if (d.success) { toast('✅ Approved!', 'suc'); refreshAfterAction(); }
     else toast(d.error || 'Failed', 'err');
-  }).catch(function(e) { hideOv(); toast(e.message, 'err'); });
+  }).catch(function(e) { hideOv(); if (e.message !== 'AUTH_FAILED') toast(e.message, 'err'); });
 }
 
 function confirmDecline(tx) {
   $('confirmTitle').textContent = '❌ Decline?';
-  $('confirmMsg').innerHTML = 'Decline <code>' + esc(tx) + '</code>?<br>Numbers will be freed.';
+  $('confirmMsg').innerHTML = 'Decline <code>' + esc(tx) + '</code>?<br>Numbers will be freed from the registry.';
   $('confirmYes').textContent = 'Decline'; $('confirmYes').className = 'btn-sm btn-red';
   $('confirmYes').onclick = function() { doDecline(tx); }; $('confirmModal').classList.add('on');
 }
@@ -1149,12 +1182,12 @@ function doDecline(tx) {
     hideOv();
     if (d.success) { toast('❌ Declined. ' + (d.freedNumbers || 0) + ' numbers freed.', 'suc'); refreshAfterAction(); }
     else toast(d.error || 'Failed', 'err');
-  }).catch(function(e) { hideOv(); toast(e.message, 'err'); });
+  }).catch(function(e) { hideOv(); if (e.message !== 'AUTH_FAILED') toast(e.message, 'err'); });
 }
 
 function confirmDelete(tx) {
   $('confirmTitle').textContent = '🗑️ Delete?';
-  $('confirmMsg').innerHTML = 'Delete <code>' + esc(tx) + '</code>?<br><strong>Numbers freed. Cannot undo!</strong>';
+  $('confirmMsg').innerHTML = 'Delete <code>' + esc(tx) + '</code>?<br><strong>This removes the transaction record. Cannot undo!</strong><br><br><span style="font-size:.8rem;color:var(--sub)">Note: Numbers must be freed first (decline the transaction) before it can be deleted.</span>';
   $('confirmYes').textContent = 'Delete'; $('confirmYes').className = 'btn-sm btn-orange';
   $('confirmYes').onclick = function() { doDelete(tx); }; $('confirmModal').classList.add('on');
 }
@@ -1162,9 +1195,9 @@ function doDelete(tx) {
   closeConfirm(); showOv('Deleting...', '');
   adminApi('adminDeleteTransaction', { transactionId: tx }).then(function(d) {
     hideOv();
-    if (d.success) { toast('🗑️ Deleted. ' + (d.freedNumbers || 0) + ' numbers freed.', 'suc'); refreshAfterAction(); }
+    if (d.success) { toast('🗑️ Deleted!', 'suc'); refreshAfterAction(); }
     else toast(d.error || 'Failed', 'err');
-  }).catch(function(e) { hideOv(); toast(e.message, 'err'); });
+  }).catch(function(e) { hideOv(); if (e.message !== 'AUTH_FAILED') toast(e.message, 'err'); });
 }
 
 function confirmDeleteAll() {
@@ -1179,7 +1212,7 @@ function doDeleteAll() {
     hideOv();
     if (d.success) { toast('🗑️ All deleted!', 'suc'); refreshAfterAction(); }
     else toast(d.error || 'Failed', 'err');
-  }).catch(function(e) { hideOv(); toast(e.message, 'err'); });
+  }).catch(function(e) { hideOv(); if (e.message !== 'AUTH_FAILED') toast(e.message, 'err'); });
 }
 
 function refreshAfterAction() {
@@ -1198,10 +1231,10 @@ function searchNumber() {
     $('sl1').classList.remove('on'); $('searchResults').style.display = 'block';
     $('searchTitle').textContent = d.found ? '✅ ' + d.query + ' found' : '❌ Not found';
     if (d.found) {
-      $('searchThead').innerHTML = '<tr><th>Number</th><th>TX</th><th>Name</th><th>Phone</th><th>GCash</th><th>Date</th><th>Time</th></tr>';
-      $('searchTbody').innerHTML = d.results.map(function(r) { return '<tr class="clickable-row" onclick="openTxDetail(\'' + esc(r.transactionId) + '\')"><td class="mono">' + esc(r.number) + '</td><td>' + esc(r.transactionId) + '</td><td>' + esc(r.name) + '</td><td>' + esc(r.phone) + '</td><td>' + esc(r.gcashRef) + '</td><td>' + esc(r.date) + '</td><td>' + esc(r.time) + '</td></tr>'; }).join('');
+      $('searchThead').innerHTML = '<tr><th>Number</th><th>TX</th><th>Name</th><th>Phone</th><th>GCash</th><th>Timestamp</th></tr>';
+      $('searchTbody').innerHTML = d.results.map(function(r) { return '<tr class="clickable-row" onclick="openTxDetail(\'' + esc(r.transactionId) + '\')"><td class="mono">' + esc(r.number) + '</td><td>' + esc(r.transactionId) + '</td><td>' + esc(r.name) + '</td><td>' + esc(r.phone) + '</td><td>' + esc(r.gcashRef) + '</td><td>' + esc(r.timestamp) + '</td></tr>'; }).join('');
     } else { $('searchThead').innerHTML = ''; $('searchTbody').innerHTML = '<tr><td class="tbl-empty">Not sold.</td></tr>'; }
-  }).catch(function(e) { $('sl1').classList.remove('on'); toast('Error: ' + e.message, 'err'); });
+  }).catch(function(e) { $('sl1').classList.remove('on'); if (e.message !== 'AUTH_FAILED') toast('Error: ' + e.message, 'err'); });
 }
 
 function searchBuyerFn() {
@@ -1211,10 +1244,10 @@ function searchBuyerFn() {
     $('sl2').classList.remove('on'); $('searchResults').style.display = 'block';
     $('searchTitle').textContent = d.total + ' result(s)';
     if (d.total > 0) {
-      $('searchThead').innerHTML = '<tr><th>Date</th><th>Time</th><th>TX</th><th>Name</th><th>Phone</th><th>Qty</th><th>Amt</th><th>Status</th></tr>';
-      $('searchTbody').innerHTML = d.results.map(function(r) { return '<tr class="clickable-row" onclick="openTxDetail(\'' + esc(r.transactionId) + '\')"><td>' + esc(r.date) + '</td><td>' + esc(r.time) + '</td><td>' + esc(r.transactionId) + '</td><td>' + esc(r.name) + '</td><td>' + esc(r.phone) + '</td><td>' + Number(r.quantity).toLocaleString() + '</td><td>₱' + Number(r.amount).toLocaleString() + '</td><td><span class="badge ' + statusClass(r.status) + '">' + esc(r.status) + '</span></td></tr>'; }).join('');
+      $('searchThead').innerHTML = '<tr><th>Timestamp</th><th>TX</th><th>Name</th><th>Phone</th><th>Qty</th><th>Amt</th><th>Status</th></tr>';
+      $('searchTbody').innerHTML = d.results.map(function(r) { return '<tr class="clickable-row" onclick="openTxDetail(\'' + esc(r.transactionId) + '\')"><td>' + esc(r.timestamp) + '</td><td>' + esc(r.transactionId) + '</td><td>' + esc(r.name) + '</td><td>' + esc(r.phone) + '</td><td>' + Number(r.quantity).toLocaleString() + '</td><td>₱' + Number(r.amount).toLocaleString() + '</td><td><span class="badge ' + statusClass(r.status) + '">' + esc(r.status) + '</span></td></tr>'; }).join('');
     } else { $('searchThead').innerHTML = ''; $('searchTbody').innerHTML = '<tr><td class="tbl-empty">None.</td></tr>'; }
-  }).catch(function(e) { $('sl2').classList.remove('on'); toast('Error: ' + e.message, 'err'); });
+  }).catch(function(e) { $('sl2').classList.remove('on'); if (e.message !== 'AUTH_FAILED') toast('Error: ' + e.message, 'err'); });
 }
 
 function searchDuplicates() {
@@ -1233,10 +1266,10 @@ function searchDuplicates() {
       summary.innerHTML = '⚠️ <strong>' + d.uniqueDuplicatedNumbers + ' duplicated!</strong>';
       $('searchResults').style.display = 'block';
       $('searchTitle').textContent = '🔄 Duplicates';
-      $('searchThead').innerHTML = '<tr><th>Number</th><th>TX</th><th>Name</th><th>Phone</th><th>GCash</th><th>Date</th><th>#</th></tr>';
+      $('searchThead').innerHTML = '<tr><th>Number</th><th>TX</th><th>Name</th><th>Phone</th><th>GCash</th><th>Timestamp</th><th>#</th></tr>';
       $('searchTbody').innerHTML = (d.duplicates || []).map(function(r) { return '<tr class="clickable-row" style="background:rgba(255,59,59,.03)" onclick="openTxDetail(\'' + esc(r.transactionId || '') + '\')"><td class="mono" style="color:var(--err)">' + esc(r.number) + '</td><td style="font-size:.73rem">' + esc(r.transactionId || '') + '</td><td>' + esc(r.name || '') + '</td><td>' + esc(r.phone || '') + '</td><td>' + esc(r.gcashRef || '') + '</td><td>' + esc(r.timestamp || '') + '</td><td><span class="badge fail">×' + (r.occurrences || 0) + '</span></td></tr>'; }).join('');
     }
-  }).catch(function(e) { $('sl3').classList.remove('on'); $('dupeBtn').disabled = false; toast(e.message, 'err'); });
+  }).catch(function(e) { $('sl3').classList.remove('on'); $('dupeBtn').disabled = false; if (e.message !== 'AUTH_FAILED') toast(e.message, 'err'); });
 }
 
 // ── TOOLS ────────────────────────────────────────────────────
@@ -1248,7 +1281,7 @@ function addNumber() {
     hideOv();
     if (d.success) { toast('✅ ' + d.message, 'suc'); $('addNum').value = ''; $('addName').value = ''; $('addPhone').value = ''; loadDashboard(); }
     else toast(d.error || 'Failed', 'err');
-  }).catch(function(e) { hideOv(); toast(e.message, 'err'); });
+  }).catch(function(e) { hideOv(); if (e.message !== 'AUTH_FAILED') toast(e.message, 'err'); });
 }
 
 function removeNumber() {
@@ -1259,7 +1292,7 @@ function removeNumber() {
     hideOv();
     if (d.success) { toast('✅ ' + d.message, 'suc'); $('removeNum').value = ''; loadDashboard(); }
     else toast(d.error || 'Failed', 'err');
-  }).catch(function(e) { hideOv(); toast(e.message, 'err'); });
+  }).catch(function(e) { hideOv(); if (e.message !== 'AUTH_FAILED') toast(e.message, 'err'); });
 }
 
 // ── SETTINGS ─────────────────────────────────────────────────
@@ -1298,7 +1331,7 @@ function saveSettings() {
     hideOv();
     if (d.success) { toast('✅ Saved!', 'suc'); $('setNewPass').value = ''; $('setNewPass2').value = ''; if (np) { toast('Password changed. Logging out...', 'warn'); setTimeout(doLogout, 2000); } }
     else toast(d.error || 'Failed', 'err');
-  }).catch(function(e) { hideOv(); toast('Error: ' + e.message, 'err'); });
+  }).catch(function(e) { hideOv(); if (e.message !== 'AUTH_FAILED') toast('Error: ' + e.message, 'err'); });
 }
 
 // ── EXPORT ───────────────────────────────────────────────────
@@ -1313,7 +1346,7 @@ function exportData(type) {
     a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
     a.download = 'PisoPalaro-' + type + '-' + new Date().toISOString().slice(0, 10) + '.csv';
     a.click(); toast('Exported ' + (d.total || 0) + ' rows!', 'suc');
-  }).catch(function(e) { hideOv(); toast('Error: ' + e.message, 'err'); });
+  }).catch(function(e) { hideOv(); if (e.message !== 'AUTH_FAILED') toast('Error: ' + e.message, 'err'); });
 }
 
 // ── AUTO REFRESH ─────────────────────────────────────────────
@@ -1344,10 +1377,9 @@ document.addEventListener('DOMContentLoaded', function() {
     var ni = $('fN');
     ni.maxLength = MAX_NAME_LEN;
     ni.addEventListener('input', function() {
-      var p = ni.selectionStart;
-      ni.value = ni.value.replace(/[<>"'`;{}()\\]/g, '').replace(/\b\w/g, function(c) { return c.toUpperCase(); });
+      var v = ni.value.replace(/[<>"'`;{}()\\]/g, '');
+      if (v !== ni.value) ni.value = v;
       if (ni.value.length > MAX_NAME_LEN) ni.value = ni.value.substring(0, MAX_NAME_LEN);
-      ni.setSelectionRange(Math.min(p, ni.value.length), Math.min(p, ni.value.length));
     });
 
     $('fP').addEventListener('input', function() { this.value = getDigitsOnly(this.value).substring(0, 11); updatePhoneStatus(); });
