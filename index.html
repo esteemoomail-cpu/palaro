@@ -4,8 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>PISO PALARO</title>
-<meta name="robots" content="noindex,nofollow">
-<meta http-equiv="X-Content-Type-Options" content="nosniff">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -169,7 +167,7 @@ footer{text-align:center;padding:24px 0;color:var(--sub);font-size:.68rem;line-h
 .tbl-wrap{background:var(--card2);border:1px solid var(--bdr);border-radius:14px;overflow:hidden;margin-bottom:20px}
 .tbl-head{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--bdr);flex-wrap:wrap;gap:10px}
 .tbl-head h3{font-size:.95rem}
-.tbl-actions{display:flex;gap:8px}
+.tbl-actions{display:flex;gap:8px;flex-wrap:wrap}
 .btn-sm{padding:7px 14px;border:none;border-radius:8px;font-size:.75rem;font-weight:700;cursor:pointer;font-family:inherit;transition:.2s;text-transform:uppercase;letter-spacing:1px}
 .btn-gold{background:linear-gradient(135deg,var(--goldd),var(--gold));color:#000}
 .btn-blue{background:rgba(0,122,255,.15);border:1px solid rgba(0,122,255,.2);color:#64b5f6}
@@ -248,6 +246,7 @@ tr:hover td{background:rgba(255,215,0,.02)}
   .ngrid{grid-template-columns:repeat(auto-fill,minmax(82px,1fr))}
   .acts{grid-template-columns:1fr}
   .rd{grid-template-columns:1fr}
+  .detail-grid{grid-template-columns:1fr}
   .stp .stx{display:none}
   .stp{padding:7px 6px}
 }
@@ -295,7 +294,7 @@ tr:hover td{background:rgba(255,215,0,.02)}
 <div class="detail-modal" id="detailModal"><div class="detail-box"><div style="display:flex;justify-content:space-between;align-items:flex-start"><div><h2 id="detailTitle">📋 Transaction Detail</h2><div class="detail-sub" id="detailSub"></div></div><button class="btn-sm btn-blue" onclick="closeDetail()" style="flex-shrink:0">✕ Close</button></div><div class="detail-grid" id="detailGrid"></div><div class="detail-nums" id="detailNums"></div><div class="detail-actions" id="detailActions"></div></div></div>
 <div class="maint-overlay" id="maintOverlay"><div class="mi">🔧</div><h2>Under Maintenance</h2><p>Purchases temporarily paused.</p></div>
 
-<!-- ═══ PUBLIC PAGE ═══ -->
+<!-- PUBLIC PAGE -->
 <div id="publicPage">
 <div class="w">
 <header>
@@ -403,14 +402,14 @@ tr:hover td{background:rgba(255,215,0,.02)}
 </div>
 </div>
 
-<!-- ═══ ADMIN PAGE ═══ -->
+<!-- ADMIN PAGE -->
 <div id="adminPage" style="display:none">
 <div id="adminLogin" class="login-wrap">
 <div class="login-box">
   <h1>🔐 PISO PALARO</h1>
   <div class="lsub">Admin Panel</div>
-  <div class="fg"><label>Username</label><input id="loginUser" placeholder="Username" autocomplete="off"></div>
-  <div class="fg"><label>Password</label><input id="loginPass" type="password" placeholder="Password" autocomplete="off"></div>
+  <div class="fg"><label>Username</label><input id="loginUser" placeholder="Username"></div>
+  <div class="fg"><label>Password</label><input id="loginPass" type="password" placeholder="Password"></div>
   <button class="btn b1" id="loginBtn" onclick="doLogin()">🔑 Sign In</button>
   <a href="#" onclick="goToPublicPage();return false" class="pub-link">🎰 Go to Public Page →</a>
 </div>
@@ -442,7 +441,6 @@ tr:hover td{background:rgba(255,215,0,.02)}
 </div>
 <div class="content">
 
-<!-- DASHBOARD -->
 <div class="page active" id="pg-dashboard">
   <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:8px">
     <div><div class="page-title">Dashboard</div><div class="page-sub" style="margin-bottom:0">Real-time overview</div></div>
@@ -463,7 +461,6 @@ tr:hover td{background:rgba(255,215,0,.02)}
   </div>
 </div>
 
-<!-- TRANSACTIONS -->
 <div class="page" id="pg-transactions">
   <div class="page-title">Transactions</div>
   <div class="page-sub">Click any row to view details</div>
@@ -477,14 +474,13 @@ tr:hover td{background:rgba(255,215,0,.02)}
       </div>
     </div>
     <div style="overflow-x:auto">
-      <table><thead><tr><th>Date</th><th>TX ID</th><th>Name</th><th>Phone</th><th>GCash</th><th>Qty</th><th>Amt</th><th>Status</th><th>Actions</th></tr></thead>
-      <tbody id="txBody"><tr><td colspan="9" class="tbl-empty">Loading...</td></tr></tbody></table>
+      <table><thead><tr><th>Date</th><th>Time</th><th>TX ID</th><th>Name</th><th>Phone</th><th>GCash</th><th>Qty</th><th>Amt</th><th>Status</th><th>Actions</th></tr></thead>
+      <tbody id="txBody"><tr><td colspan="10" class="tbl-empty">Loading...</td></tr></tbody></table>
     </div>
     <div class="pagination" id="txPagination"></div>
   </div>
 </div>
 
-<!-- NUMBERS -->
 <div class="page" id="pg-numbers">
   <div class="page-title">Sold Numbers</div>
   <div class="page-sub">Click any row to view transaction details. Format: 000000–199999</div>
@@ -497,14 +493,13 @@ tr:hover td{background:rgba(255,215,0,.02)}
       </div>
     </div>
     <div style="overflow-x:auto">
-      <table><thead><tr><th>Number</th><th>TX ID</th><th>Name</th><th>Phone</th><th>GCash</th><th>Date</th></tr></thead>
-      <tbody id="numBody"><tr><td colspan="6" class="tbl-empty">Loading...</td></tr></tbody></table>
+      <table><thead><tr><th>Number</th><th>TX ID</th><th>Name</th><th>Phone</th><th>GCash</th><th>Date</th><th>Time</th></tr></thead>
+      <tbody id="numBody"><tr><td colspan="7" class="tbl-empty">Loading...</td></tr></tbody></table>
     </div>
     <div class="pagination" id="numPagination"></div>
   </div>
 </div>
 
-<!-- SEARCH -->
 <div class="page" id="pg-search">
   <div class="page-title">Search</div>
   <div class="page-sub">Click any result to view full transaction details</div>
@@ -514,7 +509,6 @@ tr:hover td{background:rgba(255,215,0,.02)}
   <div class="tbl-wrap" id="searchResults" style="display:none"><div class="tbl-head"><h3 id="searchTitle"></h3></div><div style="overflow-x:auto"><table><thead id="searchThead"></thead><tbody id="searchTbody"></tbody></table></div></div>
 </div>
 
-<!-- TOOLS -->
 <div class="page" id="pg-tools">
   <div class="page-title">Tools</div>
   <div class="page-sub">Manual operations (numbers must be 000000–199999)</div>
@@ -523,7 +517,6 @@ tr:hover td{background:rgba(255,215,0,.02)}
   <div class="tool-card"><h3>📥 Export</h3><div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn-sm btn-green" onclick="exportData('sold')">⬇ Sold CSV</button><button class="btn-sm btn-blue" onclick="exportData('transactions')">⬇ TX CSV</button></div></div>
 </div>
 
-<!-- SETTINGS -->
 <div class="page" id="pg-settings">
   <div class="page-title">Settings</div>
   <div class="page-sub">Live configuration</div>
@@ -533,7 +526,7 @@ tr:hover td{background:rgba(255,215,0,.02)}
     <div class="setting-group"><h3>🔢 Limits</h3><div class="fg"><label>Price (₱)</label><input id="setPrice" type="number" min="1"></div><div class="fg"><label>Min Qty</label><input id="setMinQty" type="number" min="1"></div><div class="fg"><label>Max Qty</label><input id="setMaxQty" type="number" min="1"></div></div>
     <div class="setting-group"><h3>📢 Announcement</h3><div class="fg"><label>Message</label><textarea id="setAnnouncement" placeholder="Blank = hidden"></textarea></div><div class="fg"><label>Maintenance</label><select id="setMaintenance"><option value="false">Off</option><option value="true">On</option></select></div></div>
   </div>
-  <div class="setting-group"><h3>🔐 Password</h3><div class="settings-grid"><div class="fg"><label>New</label><input id="setNewPass" type="password" placeholder="Min 6" autocomplete="new-password"><small style="color:var(--sub)">Blank = keep current</small></div><div class="fg"><label>Confirm</label><input id="setNewPass2" type="password" placeholder="Repeat" autocomplete="new-password"></div></div></div>
+  <div class="setting-group"><h3>🔐 Password</h3><div class="settings-grid"><div class="fg"><label>New</label><input id="setNewPass" type="password" placeholder="Min 6"><small style="color:var(--sub)">Blank = keep current</small></div><div class="fg"><label>Confirm</label><input id="setNewPass2" type="password" placeholder="Repeat"></div></div></div>
   <button class="btn b1" onclick="saveSettings()" style="max-width:300px">💾 Save Settings</button>
 </div>
 
@@ -542,49 +535,46 @@ tr:hover td{background:rgba(255,215,0,.02)}
 
 <script>
 /* ═══════════════════════════════════════════════════════════
-   PISO PALARO — Frontend v3.0 (Hardened & Optimized)
+   PISO PALARO — Frontend v3.0
+   Numbers: 000000–199999 (1st digit 0|1, rest 0-9)
    ═══════════════════════════════════════════════════════════ */
 
-// ── IMPORTANT: Set your deployed web app URL here ──
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwQTwb3C4JPo2QbDRWf0jHs9220-jvmOxEap7Vlf1I2IUEHmqhPIZTC-SehSfAR7ya0eQ/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyzXbV4iGTtgImjUV2JllXOIDpDLiie38l4y_b3DecldO-8sCOeIofoZihD31e-UHJf2A/exec'; // ← PUT YOUR DEPLOYED WEB APP URL HERE
 const ADMIN_SECRET = 'admin';
 const TOTAL_POOL = 200000;
 const MAX_RETRY = 3;
-const RETRY_MS = [2000, 4000, 7000];
+const RETRY_MS = [3000, 5000, 8000];
 const FETCH_TIMEOUT = 90000;
 const MAX_NAME_LEN = 40;
 
-let GCASH_NUMBER = '09171234567', GCASH_NAME = 'Juan Dela Cruz';
+let GCASH_NUMBER = '0917-123-4567', GCASH_NAME = 'Juan Dela Cruz';
 let PRICE_PER = 1, MIN_QTY = 100, MAX_QTY = 10000, LOTTERY_NAME = 'PISO PALARO';
 let myNums = [], serverOnline = false, TOKEN = '';
 let currentPage = { tx: 1, num: 1 }, IS_ADMIN_MODE = false;
-let _detailTx = null, _art = null, _kat = null, activeP = 'dashboard';
-let _purchaseInProgress = false, _fetchInFlight = new Map();
+let _detailTx = null;
+let _art = null, _kat = null, activeP = 'dashboard';
+let _purchaseInProgress = false;
 
-// ── Helpers ───────────────────────────────────────────────────
 function $(id) { return document.getElementById(id); }
-function show(id) { $(id)&&$(id).classList.remove('hide'); }
-function hide(id) { $(id)&&$(id).classList.add('hide'); }
+function show(id) { $(id).classList.remove('hide'); }
+function hide(id) { $(id).classList.add('hide'); }
 function pad6(n) { return String(n).padStart(6, '0').substring(0, 6); }
-function esc(s) { const d=document.createElement('div'); d.textContent=String(s||''); return d.innerHTML; }
+function esc(s) { return String(s).replace(/[&<>"']/g, function(c) { return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
 function getDigitsOnly(s) { return String(s).replace(/\D/g, ''); }
-function isValidPhone(s) { const d = getDigitsOnly(s); return d.length === 11 && d.startsWith('09'); }
+function isValidPhone(s) { var d = getDigitsOnly(s); return d.length === 11 && d.indexOf('09') === 0; }
 function isValidNumber(num) { return /^\d{6}$/.test(num) && parseInt(num[0]) <= 1; }
 
 function sanitizeInput(str, maxLen) {
-  str = String(str || '').trim()
-    .replace(/<[^>]*>/g, '')
-    .replace(/[<>"'`;{}()\\]/g, '')
-    .replace(/[\x00-\x1F\x7F]/g, '');
+  str = String(str || '').trim().replace(/<[^>]*>/g, '').replace(/[<>"'`;{}()\\]/g, '').replace(/[\x00-\x1F\x7F]/g, '');
   return maxLen ? str.substring(0, maxLen) : str;
 }
 
 function toast(m, t) {
-  const e = $('toast');
+  var e = $('toast');
   e.textContent = m;
   e.className = 'toast ' + t + ' on';
   clearTimeout(e._t);
-  e._t = setTimeout(() => e.classList.remove('on'), 4000);
+  e._t = setTimeout(function() { e.classList.remove('on'); }, 4000);
 }
 
 function showOv(t, s) { $('ovT').textContent = t || ''; $('ovS').textContent = s || ''; $('ov').classList.add('on'); }
@@ -594,10 +584,8 @@ function closeDetail() { $('detailModal').classList.remove('on'); _detailTx = nu
 function goToPublicPage() { window.open(location.href.split('?')[0], '_blank'); }
 
 function cpField(id) {
-  const text = $(id) ? $(id).textContent : '';
-  if (!text) return;
-  navigator.clipboard.writeText(text)
-    .then(() => toast('📋 Copied!', 'suc')).catch(() => toast('Copy failed', 'err'));
+  navigator.clipboard.writeText($(id).textContent)
+    .then(function() { toast('📋 Copied!', 'suc'); }).catch(function() { toast('Copy failed', 'err'); });
 }
 
 function detectMode() {
@@ -609,40 +597,41 @@ function detectMode() {
   }
 }
 
-// ── Deduplicated Fetch with Timeout ───────────────────────────
-async function safeFetch(url, ms) {
-  const c = new AbortController();
-  const t = setTimeout(() => c.abort(), ms || FETCH_TIMEOUT);
-  try {
-    const r = await fetch(url, { redirect: 'follow', signal: c.signal });
-    clearTimeout(t);
-    const txt = await r.text();
-    if (txt.trim().startsWith('<!DOCTYPE')) throw new Error('HTML_RESPONSE');
-    try { return JSON.parse(txt); }
-    catch (e) { const m = txt.match(/\{[\s\S]*\}/); if (m) return JSON.parse(m[0]); throw new Error('PARSE_ERROR'); }
-  } catch (err) {
-    clearTimeout(t);
-    throw err.name === 'AbortError' ? new Error('TIMEOUT') : err;
-  }
-}
-
-/** Deduplicated fetch — prevents duplicate concurrent requests for same key */
-async function deduplicatedFetch(key, url, ms) {
-  if (_fetchInFlight.has(key)) return _fetchInFlight.get(key);
-  const promise = safeFetch(url, ms).finally(() => _fetchInFlight.delete(key));
-  _fetchInFlight.set(key, promise);
-  return promise;
+// ── Fetch ─────────────────────────────────────────────────────
+function safeFetch(url, ms) {
+  return new Promise(function(resolve, reject) {
+    var c = new AbortController();
+    var t = setTimeout(function() { c.abort(); }, ms || FETCH_TIMEOUT);
+    fetch(url, { redirect: 'follow', signal: c.signal })
+      .then(function(r) {
+        clearTimeout(t);
+        return r.text();
+      })
+      .then(function(txt) {
+        if (txt.trim().indexOf('<!DOCTYPE') === 0) throw new Error('HTML_RESPONSE');
+        try { resolve(JSON.parse(txt)); }
+        catch (e) {
+          var m = txt.match(/\{[\s\S]*\}/);
+          if (m) resolve(JSON.parse(m[0]));
+          else throw new Error('PARSE_ERROR');
+        }
+      })
+      .catch(function(err) {
+        clearTimeout(t);
+        reject(err.name === 'AbortError' ? new Error('TIMEOUT') : err);
+      });
+  });
 }
 
 // ── Date ──────────────────────────────────────────────────────
 function parseDrawDate(s) {
   if (!s) return null;
-  const p = String(s).trim().split('-');
-  if (p.length === 3) { const d = new Date(+p[0], +p[1]-1, +p[2]); return isNaN(d) ? null : d; }
-  const f = new Date(s); return isNaN(f) ? null : f;
+  var p = String(s).trim().split('-');
+  if (p.length === 3) { var d = new Date(+p[0], +p[1]-1, +p[2]); return isNaN(d) ? null : d; }
+  var f = new Date(s); return isNaN(f) ? null : f;
 }
 function formatDrawDate(s) {
-  const d = parseDrawDate(s); if (!d) return null;
+  var d = parseDrawDate(s); if (!d) return null;
   return d.toLocaleDateString('en-US', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
 }
 function setTodayDate() {
@@ -654,10 +643,10 @@ function applyPublicSettings(s) {
   if (s.lottery_name) {
     LOTTERY_NAME = String(s.lottery_name).substring(0, 60);
     document.title = LOTTERY_NAME;
-    const p = LOTTERY_NAME.split(' '), logo = $('logoText');
+    var p = LOTTERY_NAME.split(' '), logo = $('logoText');
     logo.textContent = '';
     logo.appendChild(document.createTextNode('🎰 ' + (p.length >= 2 ? p.slice(0, -1).join(' ') : LOTTERY_NAME)));
-    if (p.length >= 2) { const sp = document.createElement('span'); sp.textContent = p[p.length - 1]; logo.appendChild(sp); }
+    if (p.length >= 2) { var sp = document.createElement('span'); sp.textContent = p[p.length - 1]; logo.appendChild(sp); }
   }
   if (s.gcash_name) { GCASH_NAME = String(s.gcash_name).substring(0, 60); $('dN').textContent = GCASH_NAME; }
   if (s.gcash_number) { GCASH_NUMBER = String(s.gcash_number).substring(0, 20); $('dP').textContent = GCASH_NUMBER; }
@@ -668,10 +657,10 @@ function applyPublicSettings(s) {
   }
   if (s.min_quantity > 0) { MIN_QTY = parseInt(s.min_quantity) || 100; $('fQ').min = MIN_QTY; $('minQtySpan').textContent = MIN_QTY; }
   if (s.max_quantity > 0) { MAX_QTY = parseInt(s.max_quantity) || 10000; $('fQ').max = MAX_QTY; }
-  const fd = formatDrawDate(s.draw_date);
+  var fd = formatDrawDate(s.draw_date);
   $('drawBanner').style.display = fd ? 'block' : 'none';
   if (fd) $('drawDateText').textContent = fd;
-  if (s.announcement && s.announcement.trim()) {
+  if (s.announcement && String(s.announcement).trim()) {
     $('announceText').textContent = String(s.announcement).substring(0, 500);
     $('announceBanner').style.display = 'block';
   } else $('announceBanner').style.display = 'none';
@@ -681,8 +670,8 @@ function applyPublicSettings(s) {
 }
 
 function updateProgress(sold, rem) {
-  const pct = Math.max(0, Math.min(100, (rem / TOTAL_POOL) * 100));
-  const f = $('progressFill'), t = $('availTxt');
+  var pct = Math.max(0, Math.min(100, (rem / TOTAL_POOL) * 100));
+  var f = $('progressFill'), t = $('availTxt');
   f.style.width = pct + '%';
   f.classList.remove('mid', 'low'); t.classList.remove('high', 'mid', 'low');
   if (pct > 60) { t.textContent = 'Plenty available (' + rem.toLocaleString() + ')'; t.classList.add('high'); }
@@ -691,51 +680,51 @@ function updateProgress(sold, rem) {
   else { t.textContent = pct > 0 ? 'Almost sold out!' : 'Sold out'; t.classList.add('low'); f.classList.add('low'); }
 }
 
-async function checkConnection() {
-  const bar = $('connBar'), txt = $('connTxt'), ep = $('errPanel');
+function checkConnection() {
+  var bar = $('connBar'), txt = $('connTxt'), ep = $('errPanel');
   bar.className = 'conn checking'; txt.textContent = 'Connecting...'; ep.classList.add('hide');
-  try {
-    const [h, s, st] = await Promise.all([
-      safeFetch(SCRIPT_URL + '?action=health', 30000),
-      safeFetch(SCRIPT_URL + '?action=publicSettings', 30000),
-      safeFetch(SCRIPT_URL + '?action=stats', 30000)
-    ]);
+  Promise.all([
+    safeFetch(SCRIPT_URL + '?action=health', 30000),
+    safeFetch(SCRIPT_URL + '?action=publicSettings', 30000),
+    safeFetch(SCRIPT_URL + '?action=stats', 30000)
+  ]).then(function(results) {
+    var h = results[0], s = results[1], st = results[2];
     if (h && h.success) { serverOnline = true; bar.className = 'conn online'; txt.textContent = '✓ Connected'; }
     if (s && s.success) applyPublicSettings(s);
     if (st && st.success) updateProgress(st.sold, st.remaining);
-  } catch (err) {
+  }).catch(function(err) {
     bar.className = 'conn offline';
     txt.textContent = '✗ ' + (err.message === 'TIMEOUT' ? 'Timed out' : err.message);
     $('errDetail').innerHTML = '<button class="retry-btn" onclick="checkConnection()">🔄 Retry</button>';
     ep.classList.remove('hide');
-  }
+  });
 }
 
 // ── Phone ─────────────────────────────────────────────────────
 function updatePhoneStatus() {
-  const r = $('fP').value, d = getDigitsOnly(r);
-  const errEl = $('phoneErr'), okEl = $('phoneOk'), inp = $('fP');
+  var r = $('fP').value, d = getDigitsOnly(r);
+  var errEl = $('phoneErr'), okEl = $('phoneOk'), inp = $('fP');
   if (!r) { errEl.style.display = 'none'; okEl.style.display = 'none'; inp.style.borderColor = 'rgba(255,255,255,.1)'; return; }
-  if (d.length === 11 && d.startsWith('09')) {
+  if (d.length === 11 && d.indexOf('09') === 0) {
     errEl.style.display = 'none'; okEl.style.display = 'block'; inp.style.borderColor = 'var(--ok)';
   } else {
     okEl.style.display = 'none'; errEl.style.display = 'block';
-    errEl.textContent = d.length < 11 ? 'Need 11 digits (' + d.length + '/11)' : (!d.startsWith('09') ? 'Must start with 09' : 'Invalid');
+    errEl.textContent = d.length < 11 ? 'Need 11 digits (' + d.length + '/11)' : (d.indexOf('09') !== 0 ? 'Must start with 09' : 'Invalid');
     inp.style.borderColor = 'var(--err)';
   }
 }
 
 // ── Quantity ──────────────────────────────────────────────────
 function addQty(n, el) {
-  let cur = parseInt($('fQ').value) || 0, next = cur + n;
+  var cur = parseInt($('fQ').value) || 0, next = cur + n;
   if (next > MAX_QTY) { if (cur >= MAX_QTY) return toast('Already at max.', 'warn'); next = MAX_QTY; }
   $('fQ').value = next; calc();
-  if (el) { el.classList.add('qp-added'); setTimeout(() => el.classList.remove('qp-added'), 350); }
+  if (el) { el.classList.add('qp-added'); setTimeout(function() { el.classList.remove('qp-added'); }, 350); }
 }
 function setMaxQtyFn() { if (parseInt($('fQ').value) === MAX_QTY) return toast('Already at max.', 'warn'); $('fQ').value = MAX_QTY; calc(); }
 function resetQty() { $('fQ').value = ''; calc(); }
 function calc() {
-  const v = Math.min(MAX_QTY, Math.max(0, parseInt($('fQ').value) || 0));
+  var v = Math.min(MAX_QTY, Math.max(0, parseInt($('fQ').value) || 0));
   $('dT').textContent = '₱ ' + (v * PRICE_PER).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
@@ -748,7 +737,7 @@ function stpSet(n) {
   $('l2').className = n >= 3 ? 'sln on' : 'sln';
 }
 function go2() {
-  const nm = sanitizeInput($('fN').value, MAX_NAME_LEN), ph = $('fP').value.trim(), qt = parseInt($('fQ').value);
+  var nm = sanitizeInput($('fN').value, MAX_NAME_LEN), ph = $('fP').value.trim(), qt = parseInt($('fQ').value);
   if (!nm || nm.length < 2) return toast('Enter full name.', 'err');
   if (!isValidPhone(ph)) return toast('Phone: 11 digits starting with 09.', 'err');
   if (!qt || qt < MIN_QTY) { $('fQ').value = MIN_QTY; calc(); return toast('Min ' + MIN_QTY + '.', 'err'); }
@@ -762,13 +751,13 @@ function go1() { hide('p2'); show('p1'); stpSet(1); }
 // ── Purchase ─────────────────────────────────────────────────
 function submitPurchase() {
   if (_purchaseInProgress) return toast('Already processing...', 'warn');
-  const ref = getDigitsOnly($('fR').value).substring(0, 13);
+  var ref = $('fR').value.trim();
   if (!ref) return toast('Enter GCash ref.', 'err');
   if (!/^\d{1,13}$/.test(ref)) return toast('Digits only (max 13).', 'err');
   if (!serverOnline) { toast('Offline.', 'err'); checkConnection(); return; }
-  const nm = sanitizeInput($('fN').value, MAX_NAME_LEN);
-  const ph = getDigitsOnly($('fP').value).substring(0, 11);
-  const qt = parseInt($('fQ').value);
+  var nm = sanitizeInput($('fN').value, MAX_NAME_LEN);
+  var ph = getDigitsOnly($('fP').value).substring(0, 11);
+  var qt = parseInt($('fQ').value);
   if (!nm || nm.length < 2) return toast('Invalid name.', 'err');
   if (!isValidPhone(ph)) return toast('Invalid phone.', 'err');
   if (!qt || qt < MIN_QTY || qt > MAX_QTY) return toast('Invalid quantity.', 'err');
@@ -776,63 +765,67 @@ function submitPurchase() {
   attemptPurchase(nm, ph, qt, ref, 0);
 }
 
-async function attemptPurchase(nm, ph, qt, ref, tryN) {
-  if (tryN === 0) showOv('Generating ' + qt.toLocaleString() + ' numbers...', 'This may take a moment');
-  else { showOv('Retry ' + tryN + '/' + MAX_RETRY, 'Please wait...'); await new Promise(r => setTimeout(r, RETRY_MS[tryN - 1])); }
-  try {
-    const d = await safeFetch(SCRIPT_URL + '?' + new URLSearchParams({ action: 'purchase', quantity: qt, name: nm, phone: ph, gcashRef: ref }), FETCH_TIMEOUT);
-    if (d.success) {
-      hideOv(); $('buyBtn').disabled = false; _purchaseInProgress = false;
-      myNums = (d.numbers || []).map(n => pad6(n));
-      showResult(d, nm, ph, qt, ref);
-      toast('⏳ ' + (d.quantity||qt).toLocaleString() + ' numbers reserved!', 'warn');
-    } else if (d.retryable && tryN < MAX_RETRY) {
-      attemptPurchase(nm, ph, qt, ref, tryN + 1);
-    } else { hideOv(); $('buyBtn').disabled = false; _purchaseInProgress = false; toast(d.error || 'Failed.', 'err'); }
-  } catch (err) {
-    if (tryN < MAX_RETRY) attemptPurchase(nm, ph, qt, ref, tryN + 1);
-    else { hideOv(); $('buyBtn').disabled = false; _purchaseInProgress = false; toast(err.message, 'err'); }
+function attemptPurchase(nm, ph, qt, ref, tryN) {
+  if (tryN === 0) showOv('Generating ' + qt.toLocaleString() + ' numbers...', 'Please wait — this may take a moment');
+  else {
+    showOv('Retry ' + tryN + '/' + MAX_RETRY, '');
+    setTimeout(function() { doAttemptPurchase(nm, ph, qt, ref, tryN); }, RETRY_MS[tryN - 1]);
+    return;
   }
+  doAttemptPurchase(nm, ph, qt, ref, tryN);
+}
+
+function doAttemptPurchase(nm, ph, qt, ref, tryN) {
+  safeFetch(SCRIPT_URL + '?' + new URLSearchParams({ action: 'purchase', quantity: qt, name: nm, phone: ph, gcashRef: ref }), FETCH_TIMEOUT)
+    .then(function(d) {
+      if (d.success) {
+        hideOv(); $('buyBtn').disabled = false; _purchaseInProgress = false;
+        myNums = d.numbers.map(function(n) { return pad6(n); });
+        showResult(d, nm, ph, qt, ref);
+        toast('⏳ ' + d.quantity.toLocaleString() + ' numbers reserved!', 'warn');
+      } else if (d.retryable && tryN < MAX_RETRY) {
+        attemptPurchase(nm, ph, qt, ref, tryN + 1);
+      } else { hideOv(); $('buyBtn').disabled = false; _purchaseInProgress = false; toast(d.error || 'Failed.', 'err'); }
+    })
+    .catch(function(err) {
+      if (tryN < MAX_RETRY) attemptPurchase(nm, ph, qt, ref, tryN + 1);
+      else { hideOv(); $('buyBtn').disabled = false; _purchaseInProgress = false; toast(err.message, 'err'); }
+    });
 }
 
 // ── Receipt ──────────────────────────────────────────────────
-function censorName(n) { return String(n).trim().split(/\s+/).map((w, i) => i === 0 ? w : w.charAt(0) + '***').join(' '); }
-function censorPhone(p) { return String(p).substring(0, 5) + '******'; }
+function censorName(n) { return n.trim().split(/\s+/).map(function(w, i) { return i === 0 ? w : w.charAt(0) + '***'; }).join(' '); }
+function censorPhone(p) { return p.substring(0, 5) + '******'; }
 
 function showResult(d, nm, ph, qt, ref) {
   hide('secB'); show('secR'); stpSet(3);
-  $('rI').textContent = d.transactionId || '';
-  $('rD').textContent = d.timestamp || '';
-  $('rN').textContent = censorName(nm);
-  $('rP').textContent = censorPhone(ph);
-  $('rQ').textContent = (d.quantity||qt).toLocaleString();
-  $('rA').textContent = '₱ ' + Number(d.amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 });
-  $('rR').textContent = ref;
-  $('rS').textContent = '⏳ PENDING';
+  $('rI').textContent = d.transactionId; $('rD').textContent = d.timestamp;
+  $('rN').textContent = censorName(nm); $('rP').textContent = censorPhone(ph);
+  $('rQ').textContent = d.quantity.toLocaleString();
+  $('rA').textContent = '₱ ' + Number(d.amount).toLocaleString(undefined, { minimumFractionDigits: 2 });
+  $('rR').textContent = ref; $('rS').textContent = '⏳ PENDING';
   $('rC').textContent = myNums.length.toLocaleString();
-  $('nG').innerHTML = myNums.map(n => '<div class="ni">' + esc(n) + '</div>').join('');
+  $('nG').innerHTML = myNums.map(function(n) { return '<div class="ni">' + n + '</div>'; }).join('');
   scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-function cpA() { if(!myNums.length)return; navigator.clipboard.writeText(myNums.join('\n')).then(() => toast('Copied!', 'suc')).catch(() => toast('Failed', 'err')); }
+function cpA() { navigator.clipboard.writeText(myNums.join('\n')).then(function() { toast('Copied!', 'suc'); }).catch(function() { toast('Failed', 'err'); }); }
 function dlA() {
-  if(!myNums.length)return;
-  const L = [LOTTERY_NAME, 'TX: ' + ($('rI').textContent||''), 'Date: ' + ($('rD').textContent||''), 'GCash Ref: ' + ($('rR').textContent||''), 'Status: PENDING', 'Qty: ' + myNums.length, 'Amount: ' + ($('rA').textContent||''), '', 'NUMBERS:', ''];
-  myNums.forEach(n => L.push(n));
-  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([L.join('\n')], { type: 'text/plain' }));
-  a.download = 'PisoPalaro-' + ($('rI').textContent||'TX') + '.txt'; a.click(); toast('Downloaded!', 'suc');
+  var L = [LOTTERY_NAME, 'TX: ' + $('rI').textContent, 'Date: ' + $('rD').textContent, 'GCash Ref: ' + $('rR').textContent, 'Status: PENDING', 'Qty: ' + myNums.length, 'Amount: ' + $('rA').textContent, '', 'NUMBERS:', ''];
+  myNums.forEach(function(n) { L.push(n); });
+  var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([L.join('\n')], { type: 'text/plain' }));
+  a.download = 'PisoPalaro-' + $('rI').textContent + '.txt'; a.click(); toast('Downloaded!', 'suc');
 }
 function prA() {
-  if(!myNums.length)return;
-  const w = window.open('');
-  w.document.write('<!DOCTYPE html><html><head><title>' + esc(LOTTERY_NAME) + '</title><style>body{font-family:monospace;padding:20px;font-size:12px}.g{display:grid;grid-template-columns:repeat(6,1fr);gap:3px}.n{border:1px solid #ddd;padding:5px;text-align:center;font-weight:bold;letter-spacing:2px}.p{background:#fff3e0;border:2px solid #ff9800;padding:10px;margin:10px 0;text-align:center;font-weight:bold;border-radius:6px}.h{background:#fffde7;border:2px solid #ffd700;padding:8px 14px;margin:6px 0;border-radius:6px;font-size:14px;font-weight:bold}</style></head><body><h1 style="text-align:center">' + esc(LOTTERY_NAME) + '</h1><div class="p">⏳ PENDING APPROVAL</div><div class="h">TX: ' + esc($('rI').textContent||'') + '</div><div class="h">GCash Ref: ' + esc($('rR').textContent||'') + '</div><p>Qty: ' + myNums.length + ' | ' + esc($('rA').textContent||'') + '</p><div class="g">' + myNums.map(n => '<div class="n">' + esc(n) + '</div>').join('') + '</div></body></html>');
-  w.document.close(); setTimeout(() => w.print(), 300);
+  var w = window.open('');
+  w.document.write('<!DOCTYPE html><html><head><title>' + esc(LOTTERY_NAME) + '</title><style>body{font-family:monospace;padding:20px;font-size:12px}.g{display:grid;grid-template-columns:repeat(6,1fr);gap:3px}.n{border:1px solid #ddd;padding:5px;text-align:center;font-weight:bold;letter-spacing:2px}.p{background:#fff3e0;border:2px solid #ff9800;padding:10px;margin:10px 0;text-align:center;font-weight:bold;border-radius:6px}</style></head><body><h1 style="text-align:center">' + esc(LOTTERY_NAME) + '</h1><div class="p">⏳ PENDING APPROVAL</div><p>TX: ' + esc($('rI').textContent) + '<br>GCash Ref: ' + esc($('rR').textContent) + '<br>Qty: ' + myNums.length + ' | ' + esc($('rA').textContent) + '</p><div class="g">' + myNums.map(function(n) { return '<div class="n">' + n + '</div>'; }).join('') + '</div></body></html>');
+  w.document.close(); setTimeout(function() { w.print(); }, 300);
 }
-function cpGC() { navigator.clipboard.writeText(GCASH_NUMBER.replace(/\D/g, '')).then(() => toast('Copied!', 'suc')).catch(() => {}); }
+function cpGC() { navigator.clipboard.writeText(GCASH_NUMBER.replace(/\D/g, '')).then(function() { toast('Copied!', 'suc'); }).catch(function() {}); }
 
 function again() {
   hide('secR'); show('secB');
-  ['fN', 'fP', 'fQ', 'fR'].forEach(id => $(id).value = '');
+  ['fN', 'fP', 'fQ', 'fR'].forEach(function(id) { $(id).value = ''; });
   $('dT').textContent = '₱ 0.00'; $('phoneErr').style.display = 'none'; $('phoneOk').style.display = 'none';
   $('fP').style.borderColor = 'rgba(255,255,255,.1)';
   hide('p2'); show('p1'); stpSet(1); myNums = [];
@@ -844,28 +837,26 @@ function again() {
 //   ADMIN
 // ═══════════════════════════════════════════════════════════
 
-async function adminApi(a, p) {
+function adminApi(a, p) {
   p = p || {}; p.action = a; p.token = TOKEN;
   return safeFetch(SCRIPT_URL + '?' + new URLSearchParams(p), 90000);
 }
 
-async function doLogin() {
-  const u = sanitizeInput($('loginUser').value, 30), p = $('loginPass').value.trim();
+function doLogin() {
+  var u = $('loginUser').value.trim(), p = $('loginPass').value.trim();
   if (!u || !p) return toast('Enter credentials.', 'err');
   $('loginBtn').disabled = true; showOv('Signing in...', '');
-  try {
-    const d = await safeFetch(SCRIPT_URL + '?' + new URLSearchParams({ action: 'adminLogin', username: u, password: p }), 30000);
+  adminApi('adminLogin', { username: u, password: p }).then(function(d) {
     if (d.success) {
       TOKEN = d.token; $('adminUser').textContent = u;
       $('adminLogin').style.display = 'none'; $('adminPanel').style.display = 'block';
       toast('Welcome!', 'suc');
       showOv('Loading dashboard...', '');
-      try { await loadDashboard(); } catch (e) { console.error('Dashboard:', e); }
-      hideOv();
+      loadDashboard().then(function() { hideOv(); }).catch(function() { hideOv(); });
       startAutoRefresh(); startKeepAlive();
-    } else toast(d.error || 'Login failed', 'err');
-  } catch (e) { toast(e.message, 'err'); }
-  hideOv(); $('loginBtn').disabled = false;
+    } else toast(d.error, 'err');
+    hideOv(); $('loginBtn').disabled = false;
+  }).catch(function(e) { toast(e.message, 'err'); hideOv(); $('loginBtn').disabled = false; });
 }
 
 function doLogout() {
@@ -877,18 +868,18 @@ function doLogout() {
 
 function startKeepAlive() {
   if (_kat) clearInterval(_kat);
-  _kat = setInterval(() => { if (TOKEN) fetch(SCRIPT_URL + '?action=health', { redirect: 'follow' }).catch(() => {}); }, 55000);
+  _kat = setInterval(function() { if (TOKEN) fetch(SCRIPT_URL + '?action=health', { redirect: 'follow' }).catch(function() {}); }, 55000);
 }
 
 function goPage(n) {
   activeP = n;
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  const pg = $('pg-' + n); if (pg) pg.classList.add('active');
-  document.querySelectorAll('.sidebar .nav-item').forEach(x => x.classList.remove('active'));
-  document.querySelectorAll('[data-page="' + n + '"]').forEach(x => x.classList.add('active'));
-  document.querySelectorAll('.mob-nav .nav-item').forEach(x => {
+  document.querySelectorAll('.page').forEach(function(p) { p.classList.remove('active'); });
+  $('pg-' + n).classList.add('active');
+  document.querySelectorAll('.sidebar .nav-item').forEach(function(x) { x.classList.remove('active'); });
+  document.querySelectorAll('[data-page="' + n + '"]').forEach(function(x) { x.classList.add('active'); });
+  document.querySelectorAll('.mob-nav .nav-item').forEach(function(x) {
     x.classList.remove('active');
-    if (x.textContent.toLowerCase().includes(n.substring(0, 4))) x.classList.add('active');
+    if (x.textContent.toLowerCase().indexOf(n.substring(0, 4)) !== -1) x.classList.add('active');
   });
   if (n === 'dashboard') loadDashboard();
   else if (n === 'transactions') loadTransactions();
@@ -896,147 +887,160 @@ function goPage(n) {
   else if (n === 'settings') loadSettingsFn();
 }
 
-function statusClass(s) { s = String(s||'').toUpperCase(); return s === 'APPROVED' ? 'ok' : s === 'PENDING' ? 'pend' : 'dec'; }
+function statusClass(s) { return s === 'APPROVED' ? 'ok' : s === 'PENDING' ? 'pend' : 'dec'; }
 
 
-// ═══════════════════════════════════════════════════════════
-//   DASHBOARD
-// ═══════════════════════════════════════════════════════════
+// ── DASHBOARD ────────────────────────────────────────────────
 
-async function loadDashboard() {
-  try {
-    const d = await adminApi('adminDashboard');
+function loadDashboard() {
+  $('feedList').innerHTML = '<li class="tbl-empty">Loading...</li>';
+  return adminApi('adminDashboard').then(function(d) {
     if (d && d.success) renderDashboard(d);
     else $('feedList').innerHTML = '<li class="tbl-empty">Failed. <button class="retry-btn" onclick="loadDashboard()">Retry</button></li>';
-  } catch (e) {
+  }).catch(function(e) {
     $('feedList').innerHTML = '<li class="tbl-empty">Error: ' + esc(e.message) + ' <button class="retry-btn" onclick="loadDashboard()">Retry</button></li>';
-  }
+  });
 }
 
 function refreshDashboard() { toast('Refreshing...', 'warn'); loadDashboard(); }
 
 function renderDashboard(d) {
-  const sold = Number(d.sold) || 0;
-  const remaining = Number(d.remaining) || 0;
-  const totalPool = Number(d.totalPool) || TOTAL_POOL;
+  var sold = Number(d.sold) || 0;
+  var remaining = Number(d.remaining) || 0;
+  var totalPool = Number(d.totalPool) || TOTAL_POOL;
+  var percentSold = Number(d.percentSold) || 0;
+  var totalRevenue = Number(d.totalRevenue) || 0;
+  var pendingTx = Number(d.pendingTransactions) || 0;
+  var approvedTx = Number(d.approvedTransactions) || 0;
+  var declinedTx = Number(d.declinedTransactions) || 0;
+  var uniqueBuyers = Number(d.uniqueBuyers) || 0;
+
   $('dsSold').textContent = sold.toLocaleString();
   $('dsRemain').textContent = remaining.toLocaleString();
-  $('dsPct').textContent = (Number(d.percentSold) || 0) + '% sold';
-  $('dsRevenue').textContent = '₱' + (Number(d.totalRevenue) || 0).toLocaleString();
-  $('dsPending').textContent = (Number(d.pendingTransactions) || 0).toLocaleString();
-  $('dsApproved').textContent = (Number(d.approvedTransactions) || 0).toLocaleString();
-  $('dsDeclined').textContent = (Number(d.declinedTransactions) || 0).toLocaleString();
-  $('dsBuyers').textContent = (Number(d.uniqueBuyers) || 0).toLocaleString();
+  $('dsPct').textContent = percentSold + '% sold';
+  $('dsRevenue').textContent = '₱' + totalRevenue.toLocaleString();
+  $('dsPending').textContent = pendingTx.toLocaleString();
+  $('dsApproved').textContent = approvedTx.toLocaleString();
+  $('dsDeclined').textContent = declinedTx.toLocaleString();
+  $('dsBuyers').textContent = uniqueBuyers.toLocaleString();
 
-  const pct = totalPool > 0 ? (sold / totalPool) * 100 : 0;
-  const bar = $('dsBar');
+  var pct = totalPool > 0 ? (sold / totalPool) * 100 : 0;
+  var bar = $('dsBar');
   bar.style.width = pct + '%';
   bar.classList.remove('mid', 'low');
   if (pct > 70) bar.classList.add('low');
   else if (pct > 40) bar.classList.add('mid');
 
-  const acts = d.recentActivity || [];
-  const list = $('feedList');
-  if (!acts.length) { list.innerHTML = '<li class="tbl-empty">No activity yet.</li>'; return; }
+  var acts = d.recentActivity || [];
+  var list = $('feedList');
 
-  const frags = [];
-  for (let i = 0; i < acts.length; i++) {
-    const a = acts[i], dc = statusClass(a.status), txE = esc(a.transactionId || '');
-    frags.push('<li style="cursor:pointer;align-items:flex-start" onclick="openTxDetail(\'' + txE + '\')">' +
+  if (!acts || acts.length === 0) {
+    list.innerHTML = '<li class="tbl-empty">No activity yet.</li>';
+    return;
+  }
+
+  var h = '';
+  for (var i = 0; i < acts.length; i++) {
+    var a = acts[i];
+    var dc = statusClass(a.status);
+    var txE = esc(a.transactionId || '');
+    var nameE = esc(a.name || 'Unknown');
+    var qty = Number(a.quantity) || 0;
+    var amt = Number(a.amount) || 0;
+    var ts = esc(a.timestamp || '');
+    var st = esc(a.status || 'UNKNOWN');
+
+    h += '<li style="cursor:pointer;align-items:flex-start" onclick="openTxDetail(\'' + txE + '\')">' +
       '<div class="dot ' + dc + '" style="margin-top:4px;flex-shrink:0"></div>' +
       '<div style="flex:1;min-width:0">' +
         '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:6px">' +
-          '<strong style="word-break:break-word">' + esc(a.name || 'Unknown') + '</strong>' +
-          '<span class="badge ' + dc + '" style="flex-shrink:0">' + esc(a.status || '') + '</span>' +
+          '<strong style="word-break:break-word">' + nameE + '</strong>' +
+          '<span class="badge ' + dc + '" style="flex-shrink:0">' + st + '</span>' +
         '</div>' +
-        '<div style="font-size:.8rem;color:var(--sub);margin-top:2px">' + (Number(a.quantity)||0).toLocaleString() + ' entries · ₱' + (Number(a.amount)||0).toLocaleString() + '</div>' +
-        '<span class="time" style="display:block;margin-top:2px">' + esc(a.timestamp || '') + '<br>' + txE + '</span>' +
-      '</div></li>');
+        '<div style="font-size:.8rem;color:var(--sub);margin-top:2px">' + qty.toLocaleString() + ' entries · ₱' + amt.toLocaleString() + '</div>' +
+        '<span class="time" style="display:block;margin-top:2px">' + ts + '<br>' + txE + '</span>' +
+      '</div></li>';
   }
-  list.innerHTML = frags.join('');
+
+  list.innerHTML = h;
 }
 
 
-// ═══════════════════════════════════════════════════════════
-//   TRANSACTIONS
-// ═══════════════════════════════════════════════════════════
+// ── TRANSACTIONS ─────────────────────────────────────────────
 
 function buildTxActions(status, txId) {
-  let a = '<div class="tx-actions">';
-  if (status === 'PENDING') a += '<button class="btn-sm btn-green" onclick="event.stopPropagation();confirmApprove(\'' + txId + '\')">Approve</button><button class="btn-sm btn-red" onclick="event.stopPropagation();confirmDecline(\'' + txId + '\')">Decline</button>';
-  a += '<button class="btn-sm btn-orange" onclick="event.stopPropagation();confirmDelete(\'' + txId + '\')">Delete</button></div>';
+  var a = '<div class="tx-actions">';
+  if (status === 'PENDING') a += '<button class="btn-sm btn-green" onclick="event.stopPropagation();confirmApprove(\'' + txId + '\')">✓</button><button class="btn-sm btn-red" onclick="event.stopPropagation();confirmDecline(\'' + txId + '\')">✗</button>';
+  a += '<button class="btn-sm btn-orange" onclick="event.stopPropagation();confirmDelete(\'' + txId + '\')">🗑</button></div>';
   return a;
 }
 
 function renderTransactions(d) {
-  const b = $('txBody');
+  var b = $('txBody');
   if (!d.transactions || !d.transactions.length) {
-    b.innerHTML = '<tr><td colspan="9" class="tbl-empty">No transactions.</td></tr>';
+    b.innerHTML = '<tr><td colspan="10" class="tbl-empty">No transactions.</td></tr>';
     $('txPagination').innerHTML = ''; return;
   }
-  const frags = [];
-  d.transactions.forEach(t => {
-    const sc = statusClass(t.status), txE = esc(t.transactionId || '');
-    frags.push('<tr data-tx="' + txE + '" class="clickable-row" onclick="openTxDetail(\'' + txE + '\')">' +
-      '<td>' + esc(t.timestamp) + '</td>' +
+  var h = '';
+  d.transactions.forEach(function(t) {
+    var sc = statusClass(t.status), txE = esc(t.transactionId);
+    h += '<tr data-tx="' + txE + '" class="clickable-row" onclick="openTxDetail(\'' + txE + '\')">' +
+      '<td>' + esc(t.date) + '</td><td>' + esc(t.time) + '</td>' +
       '<td class="mono" style="font-size:.73rem">' + txE + '</td>' +
       '<td>' + esc(t.name) + '</td><td>' + esc(t.phone) + '</td><td>' + esc(t.gcashRef) + '</td>' +
       '<td>' + Number(t.quantity).toLocaleString() + '</td><td>₱' + Number(t.amount).toLocaleString() + '</td>' +
       '<td><span class="badge ' + sc + '">' + esc(t.status) + '</span></td>' +
-      '<td>' + buildTxActions(t.status, txE) + '</td></tr>');
+      '<td>' + buildTxActions(t.status, txE) + '</td></tr>';
   });
-  b.innerHTML = frags.join('');
+  b.innerHTML = h;
   renderPg('txPagination', d.page, d.totalPages, 'loadTransactions');
 }
 
 function refreshTransactions() { loadTransactions(); }
 
-async function loadTransactions(pg) {
+function loadTransactions(pg) {
   if (pg) currentPage.tx = pg;
-  $('txBody').innerHTML = '<tr><td colspan="9" class="tbl-empty">Loading...</td></tr>';
-  try {
-    const d = await adminApi('adminTransactions', { page: currentPage.tx, perPage: 30 });
+  $('txBody').innerHTML = '<tr><td colspan="10" class="tbl-empty">Loading...</td></tr>';
+  adminApi('adminTransactions', { page: currentPage.tx, perPage: 30 }).then(function(d) {
     if (d && d.success) renderTransactions(d);
-    else $('txBody').innerHTML = '<tr><td colspan="9" class="tbl-empty">Error loading.</td></tr>';
-  } catch (e) { $('txBody').innerHTML = '<tr><td colspan="9" class="tbl-empty">Error: ' + esc(e.message) + '</td></tr>'; }
+    else $('txBody').innerHTML = '<tr><td colspan="10" class="tbl-empty">Error loading.</td></tr>';
+  }).catch(function(e) { $('txBody').innerHTML = '<tr><td colspan="10" class="tbl-empty">Error: ' + esc(e.message) + '</td></tr>'; });
 }
 
 
-// ═══════════════════════════════════════════════════════════
-//   NUMBERS
-// ═══════════════════════════════════════════════════════════
+// ── NUMBERS ──────────────────────────────────────────────────
 
 function refreshNumbers() { loadNumbers(); }
 
-async function loadNumbers(pg) {
+function loadNumbers(pg) {
   if (pg) currentPage.num = pg;
-  $('numBody').innerHTML = '<tr><td colspan="6" class="tbl-empty">Loading...</td></tr>';
-  try {
-    const d = await adminApi('adminSoldNumbers', { page: currentPage.num, perPage: 100 });
+  $('numBody').innerHTML = '<tr><td colspan="7" class="tbl-empty">Loading...</td></tr>';
+  adminApi('adminSoldNumbers', { page: currentPage.num, perPage: 100 }).then(function(d) {
     if (d && d.success) {
-      const b = $('numBody');
-      if (!d.numbers || !d.numbers.length) { b.innerHTML = '<tr><td colspan="6" class="tbl-empty">None.</td></tr>'; $('numPagination').innerHTML = ''; return; }
-      const frags = [];
-      d.numbers.forEach(n => {
-        frags.push('<tr class="clickable-row" onclick="openTxDetail(\'' + esc(n.transactionId) + '\')">' +
+      var b = $('numBody');
+      if (!d.numbers.length) { b.innerHTML = '<tr><td colspan="7" class="tbl-empty">None.</td></tr>'; $('numPagination').innerHTML = ''; return; }
+      var h = '';
+      d.numbers.forEach(function(n) {
+        h += '<tr class="clickable-row" onclick="openTxDetail(\'' + esc(n.transactionId) + '\')">' +
           '<td class="mono">' + esc(n.number) + '</td><td style="font-size:.73rem">' + esc(n.transactionId) + '</td>' +
-          '<td>' + esc(n.name) + '</td><td>' + esc(n.phone) + '</td><td>' + esc(n.gcashRef) + '</td><td>' + esc(n.timestamp) + '</td></tr>');
+          '<td>' + esc(n.name) + '</td><td>' + esc(n.phone) + '</td><td>' + esc(n.gcashRef) + '</td>' +
+          '<td>' + esc(n.date) + '</td><td>' + esc(n.time) + '</td></tr>';
       });
-      b.innerHTML = frags.join('');
+      b.innerHTML = h;
       renderPg('numPagination', d.page, d.totalPages, 'loadNumbers');
     }
-  } catch (e) { $('numBody').innerHTML = '<tr><td colspan="6" class="tbl-empty">Error</td></tr>'; }
+  }).catch(function(e) { $('numBody').innerHTML = '<tr><td colspan="7" class="tbl-empty">Error</td></tr>'; });
 }
 
 
 // ── Pagination ───────────────────────────────────────────────
 function renderPg(cid, cur, tot, fn) {
-  const c = $(cid); if (!c || tot <= 1) { if(c) c.innerHTML = ''; return; }
-  let h = '<button class="pg-btn" onclick="' + fn + '(' + (cur - 1) + ')" ' + (cur <= 1 ? 'disabled' : '') + '>←</button>';
-  const s = Math.max(1, cur - 2), e = Math.min(tot, cur + 2);
+  var c = $(cid); if (tot <= 1) { c.innerHTML = ''; return; }
+  var h = '<button class="pg-btn" onclick="' + fn + '(' + (cur - 1) + ')" ' + (cur <= 1 ? 'disabled' : '') + '>←</button>';
+  var s = Math.max(1, cur - 2), e = Math.min(tot, cur + 2);
   if (s > 1) h += '<button class="pg-btn" onclick="' + fn + '(1)">1</button>';
   if (s > 2) h += '<span class="pg-info">…</span>';
-  for (let i = s; i <= e; i++) h += '<button class="pg-btn' + (i === cur ? ' active' : '') + '" onclick="' + fn + '(' + i + ')">' + i + '</button>';
+  for (var i = s; i <= e; i++) h += '<button class="pg-btn' + (i === cur ? ' active' : '') + '" onclick="' + fn + '(' + i + ')">' + i + '</button>';
   if (e < tot - 1) h += '<span class="pg-info">…</span>';
   if (e < tot) h += '<button class="pg-btn" onclick="' + fn + '(' + tot + ')">' + tot + '</button>';
   h += '<button class="pg-btn" onclick="' + fn + '(' + (cur + 1) + ')" ' + (cur >= tot ? 'disabled' : '') + '>→</button> <span class="pg-info">' + cur + '/' + tot + '</span>';
@@ -1044,60 +1048,55 @@ function renderPg(cid, cur, tot, fn) {
 }
 
 
-// ═══════════════════════════════════════════════════════════
-//   TRANSACTION DETAIL
-// ═══════════════════════════════════════════════════════════
+// ── TRANSACTION DETAIL ───────────────────────────────────────
 
-async function openTxDetail(txId) {
-  if (!txId) return;
+function openTxDetail(txId) {
   showOv('Loading...', '');
-  try {
-    const d = await adminApi('adminGetTransaction', { transactionId: txId });
+  adminApi('adminGetTransaction', { transactionId: txId }).then(function(d) {
     hideOv();
-    if (!d || !d.success) { toast(d ? d.error : 'Not found', 'err'); return; }
+    if (!d.success) { toast(d.error || 'Not found', 'err'); return; }
     renderTxDetail(d);
     $('detailModal').classList.add('on');
-  } catch (e) { hideOv(); toast(e.message, 'err'); }
+  }).catch(function(e) { hideOv(); toast(e.message, 'err'); });
 }
 
 function renderTxDetail(d) {
-  const tx = d.transaction; _detailTx = tx;
-  $('detailTitle').textContent = '📋 Transaction Detail';
-  $('detailSub').textContent = tx.transactionId || '';
+  var tx = d.transaction; _detailTx = tx;
+  $('detailTitle').innerHTML = '📋 Transaction Detail';
+  $('detailSub').textContent = tx.transactionId;
 
-  const fields = [
+  var fields = [
     ['Transaction ID', tx.transactionId, 'font-family:JetBrains Mono,monospace;color:var(--gold)'],
-    ['Date', tx.timestamp], ['Name', tx.name], ['Phone', tx.phone],
+    ['Date', tx.date], ['Time', tx.time], ['Name', tx.name], ['Phone', tx.phone],
     ['GCash Ref', tx.gcashRef], ['Quantity', Number(tx.quantity).toLocaleString()],
     ['Amount', '₱' + Number(tx.amount).toLocaleString(), 'color:var(--gold);font-weight:800'],
     ['Status', '<span class="badge ' + statusClass(tx.status) + '">' + esc(tx.status) + '</span>']
   ];
-  $('detailGrid').innerHTML = fields.map(f =>
-    '<div class="ri"><div class="rl">' + esc(f[0]) + '</div><div class="rv"' + (f[2] ? ' style="' + f[2] + '"' : '') + '>' +
-    (f[0] === 'Status' ? f[1] : esc(String(f[1]||''))) + '</div></div>'
-  ).join('');
+  $('detailGrid').innerHTML = fields.map(function(f) {
+    return '<div class="ri"><div class="rl">' + f[0] + '</div><div class="rv"' + (f[2] ? ' style="' + f[2] + '"' : '') + '>' +
+    (f[0] === 'Status' ? f[1] : esc(String(f[1]))) + '</div></div>';
+  }).join('');
 
-  let allNums = [], nh = '';
+  var allNums = [], nh = '';
   if (tx.soldNumbers && tx.soldNumbers.length > 0) {
-    allNums = tx.soldNumbers.map(n => pad6(n));
-    nh = '<h3>🎰 Numbers (' + (tx.soldCount||allNums.length).toLocaleString() + ')</h3><div class="nbox" style="max-height:300px"><div class="ngrid">' +
-      allNums.slice(0, 500).map(n => '<div class="ni">' + esc(n) + '</div>').join('') + '</div></div>';
-    if (allNums.length > 500) nh += '<div style="text-align:center;padding:10px;color:var(--sub)">+' + (allNums.length - 500).toLocaleString() + ' more</div>';
+    allNums = tx.soldNumbers;
+    nh = '<h3>🎰 Numbers (' + tx.soldCount.toLocaleString() + ')</h3><div class="nbox" style="max-height:300px"><div class="ngrid">' +
+      tx.soldNumbers.map(function(n) { return '<div class="ni">' + esc(n) + '</div>'; }).join('') + '</div></div>';
   } else if (tx.numbers && String(tx.numbers).trim()) {
-    const nums = String(tx.numbers).split(',').map(n => pad6(n.trim())).filter(n => n.length === 6);
-    allNums = nums;
+    var nums = tx.numbers.split(',').map(function(n) { return n.trim(); }).filter(function(n) { return n; });
+    allNums = nums.map(function(n) { return pad6(n); });
     nh = '<h3>🎰 Numbers (' + nums.length.toLocaleString() + ')</h3>';
     if (tx.status === 'DECLINED') nh += '<div style="font-size:.78rem;color:var(--err);margin-bottom:8px">⚠️ Numbers freed</div>';
-    const display = nums.slice(0, 500);
+    var display = nums.slice(0, 500);
     nh += '<div class="nbox" style="max-height:300px"><div class="ngrid">' +
-      display.map(n => '<div class="ni" style="opacity:' + (tx.status === 'DECLINED' ? '.4' : '1') + '">' + esc(n) + '</div>').join('') + '</div></div>';
+      display.map(function(n) { return '<div class="ni" style="opacity:' + (tx.status === 'DECLINED' ? '.4' : '1') + '">' + pad6(n) + '</div>'; }).join('') + '</div></div>';
     if (nums.length > 500) nh += '<div style="text-align:center;padding:10px;color:var(--sub)">+' + (nums.length - 500).toLocaleString() + ' more</div>';
   } else { nh = '<h3>🎰 Numbers</h3><div style="color:var(--sub);padding:10px">No data.</div>'; }
 
   _detailTx._allNums = allNums;
   $('detailNums').innerHTML = nh;
 
-  let ah = '';
+  var ah = '';
   if (allNums.length > 0) ah += '<button class="btn-sm btn-blue" onclick="copyDetailNums()">📋 Copy</button><button class="btn-sm btn-green" onclick="downloadDetailTx()">⬇ Download</button>';
   if (tx.status === 'PENDING') ah += '<button class="btn-sm btn-green" onclick="closeDetail();confirmApprove(\'' + esc(tx.transactionId) + '\')">✅ Approve</button><button class="btn-sm btn-red" onclick="closeDetail();confirmDecline(\'' + esc(tx.transactionId) + '\')">❌ Decline</button>';
   ah += '<button class="btn-sm btn-blue" onclick="closeDetail()">Close</button>';
@@ -1105,199 +1104,174 @@ function renderTxDetail(d) {
 }
 
 function copyDetailNums() {
-  if (!_detailTx || !_detailTx._allNums || !_detailTx._allNums.length) return toast('No numbers', 'err');
-  navigator.clipboard.writeText(_detailTx._allNums.join('\n')).then(() => toast('Copied ' + _detailTx._allNums.length.toLocaleString() + ' numbers!', 'suc')).catch(() => toast('Failed', 'err'));
+  if (!_detailTx || !_detailTx._allNums.length) return toast('No numbers', 'err');
+  navigator.clipboard.writeText(_detailTx._allNums.join('\n')).then(function() { toast('Copied ' + _detailTx._allNums.length.toLocaleString() + ' numbers!', 'suc'); }).catch(function() { toast('Failed', 'err'); });
 }
 
 function downloadDetailTx() {
   if (!_detailTx) return;
-  const tx = _detailTx, nums = tx._allNums || [];
-  const L = [LOTTERY_NAME, '', 'TX: ' + (tx.transactionId||''), 'Date: ' + (tx.timestamp||''), 'Name: ' + (tx.name||''), 'Phone: ' + (tx.phone||''), 'GCash: ' + (tx.gcashRef||''), 'Status: ' + (tx.status||''), 'Qty: ' + (tx.quantity||0), 'Amount: ₱' + Number(tx.amount||0).toLocaleString(), '', 'NUMBERS:', ''];
-  nums.forEach(n => L.push(n));
-  const a = document.createElement('a');
+  var tx = _detailTx, nums = tx._allNums || [];
+  var L = [LOTTERY_NAME, '', 'TX: ' + tx.transactionId, 'Date: ' + tx.date, 'Time: ' + tx.time, 'Name: ' + tx.name, 'Phone: ' + tx.phone, 'GCash: ' + tx.gcashRef, 'Status: ' + tx.status, 'Qty: ' + tx.quantity, 'Amount: ₱' + Number(tx.amount).toLocaleString(), '', 'NUMBERS:', ''];
+  nums.forEach(function(n) { L.push(n); });
+  var a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob([L.join('\n')], { type: 'text/plain' }));
-  a.download = 'PisoPalaro-' + (tx.transactionId||'TX') + '.txt'; a.click(); toast('Downloaded!', 'suc');
+  a.download = 'PisoPalaro-' + tx.transactionId + '.txt'; a.click(); toast('Downloaded!', 'suc');
 }
 
 
-// ═══════════════════════════════════════════════════════════
-//   APPROVE / DECLINE / DELETE
-// ═══════════════════════════════════════════════════════════
+// ── APPROVE / DECLINE / DELETE ───────────────────────────────
 
 function confirmApprove(tx) {
   $('confirmTitle').textContent = '✅ Approve?';
   $('confirmMsg').innerHTML = 'Approve <code>' + esc(tx) + '</code>?';
   $('confirmYes').textContent = 'Approve'; $('confirmYes').className = 'btn-sm btn-green';
-  $('confirmYes').onclick = () => doApprove(tx); $('confirmModal').classList.add('on');
+  $('confirmYes').onclick = function() { doApprove(tx); }; $('confirmModal').classList.add('on');
 }
-async function doApprove(tx) {
+function doApprove(tx) {
   closeConfirm(); showOv('Approving...', '');
-  try {
-    const d = await adminApi('adminApproveTransaction', { transactionId: tx });
+  adminApi('adminApproveTransaction', { transactionId: tx }).then(function(d) {
     hideOv();
-    if (d.success) { toast('✅ Approved!', 'suc'); refreshCurrentPage(); }
-    else toast(d.error || 'Failed', 'err');
-  } catch (e) { hideOv(); toast(e.message, 'err'); }
+    if (d.success) { toast('✅ Approved!', 'suc'); refreshAfterAction(); }
+    else toast(d.error, 'err');
+  }).catch(function(e) { hideOv(); toast(e.message, 'err'); });
 }
 
 function confirmDecline(tx) {
   $('confirmTitle').textContent = '❌ Decline?';
   $('confirmMsg').innerHTML = 'Decline <code>' + esc(tx) + '</code>?<br>Numbers will be freed.';
   $('confirmYes').textContent = 'Decline'; $('confirmYes').className = 'btn-sm btn-red';
-  $('confirmYes').onclick = () => doDecline(tx); $('confirmModal').classList.add('on');
+  $('confirmYes').onclick = function() { doDecline(tx); }; $('confirmModal').classList.add('on');
 }
-async function doDecline(tx) {
+function doDecline(tx) {
   closeConfirm(); showOv('Declining...', '');
-  try {
-    const d = await adminApi('adminDeclineTransaction', { transactionId: tx });
+  adminApi('adminDeclineTransaction', { transactionId: tx }).then(function(d) {
     hideOv();
-    if (d.success) { toast('❌ Declined. ' + (d.freedNumbers || 0) + ' numbers freed.', 'suc'); refreshCurrentPage(); }
-    else toast(d.error || 'Failed', 'err');
-  } catch (e) { hideOv(); toast(e.message, 'err'); }
+    if (d.success) { toast('❌ Declined. ' + (d.freedNumbers || 0) + ' numbers freed.', 'suc'); refreshAfterAction(); }
+    else toast(d.error, 'err');
+  }).catch(function(e) { hideOv(); toast(e.message, 'err'); });
 }
 
 function confirmDelete(tx) {
   $('confirmTitle').textContent = '🗑️ Delete?';
   $('confirmMsg').innerHTML = 'Delete <code>' + esc(tx) + '</code>?<br><strong>Numbers freed. Cannot undo!</strong>';
   $('confirmYes').textContent = 'Delete'; $('confirmYes').className = 'btn-sm btn-orange';
-  $('confirmYes').onclick = () => doDelete(tx); $('confirmModal').classList.add('on');
+  $('confirmYes').onclick = function() { doDelete(tx); }; $('confirmModal').classList.add('on');
 }
-async function doDelete(tx) {
+function doDelete(tx) {
   closeConfirm(); showOv('Deleting...', '');
-  try {
-    const d = await adminApi('adminDeleteTransaction', { transactionId: tx });
+  adminApi('adminDeleteTransaction', { transactionId: tx }).then(function(d) {
     hideOv();
-    if (d.success) { toast('🗑️ Deleted. ' + (d.freedNumbers || 0) + ' numbers freed.', 'suc'); refreshCurrentPage(); }
-    else toast(d.error || 'Failed', 'err');
-  } catch (e) { hideOv(); toast(e.message, 'err'); }
+    if (d.success) { toast('🗑️ Deleted. ' + (d.freedNumbers || 0) + ' numbers freed.', 'suc'); refreshAfterAction(); }
+    else toast(d.error, 'err');
+  }).catch(function(e) { hideOv(); toast(e.message, 'err'); });
 }
 
 function confirmDeleteAll() {
   $('confirmTitle').textContent = '🗑️ Delete ALL?';
-  $('confirmMsg').innerHTML = 'Delete <strong>ALL transactions & numbers</strong>?<br><strong style="color:var(--err)">This cannot be undone!</strong>';
+  $('confirmMsg').innerHTML = 'Delete <strong>everything</strong>? All transactions and numbers will be permanently removed.<br><strong style="color:var(--err)">Cannot undo!</strong>';
   $('confirmYes').textContent = 'Delete All'; $('confirmYes').className = 'btn-sm btn-red';
-  $('confirmYes').onclick = () => doDeleteAll(); $('confirmModal').classList.add('on');
+  $('confirmYes').onclick = function() { doDeleteAll(); }; $('confirmModal').classList.add('on');
 }
-async function doDeleteAll() {
-  closeConfirm(); showOv('Deleting everything...', 'This may take a moment');
-  try {
-    const d = await adminApi('adminDeleteAllTransactions');
+function doDeleteAll() {
+  closeConfirm(); showOv('Deleting all transactions & numbers...', 'This may take a moment');
+  adminApi('adminDeleteAllTransactions').then(function(d) {
     hideOv();
-    if (d.success) { toast('🗑️ All deleted!', 'suc'); refreshCurrentPage(); }
-    else toast(d.error || 'Failed', 'err');
-  } catch (e) { hideOv(); toast(e.message, 'err'); }
+    if (d.success) { toast('🗑️ All deleted!', 'suc'); refreshAfterAction(); }
+    else toast(d.error, 'err');
+  }).catch(function(e) { hideOv(); toast(e.message, 'err'); });
 }
 
-/** Refresh whatever page admin is currently on + dashboard */
-function refreshCurrentPage() {
+function refreshAfterAction() {
   loadDashboard();
   if (activeP === 'transactions') loadTransactions();
-  else if (activeP === 'numbers') loadNumbers();
+  if (activeP === 'numbers') loadNumbers();
 }
 
 
-// ═══════════════════════════════════════════════════════════
-//   SEARCH
-// ═══════════════════════════════════════════════════════════
+// ── SEARCH ───────────────────────────────────────────────────
 
-async function searchNumber() {
-  let q = getDigitsOnly($('searchNum').value).substring(0, 6);
-  if (!q) return toast('Enter number.', 'err');
-  q = pad6(q);
+function searchNumber() {
+  var q = $('searchNum').value.trim(); if (!q) return toast('Enter number.', 'err');
+  q = pad6(q.replace(/\D/g, ''));
   if (!isValidNumber(q)) return toast('1st digit must be 0 or 1.', 'err');
   $('sl1').classList.add('on'); $('searchResults').style.display = 'none';
-  try {
-    const d = await adminApi('adminSearchNumber', { query: q });
+  adminApi('adminSearchNumber', { query: q }).then(function(d) {
     $('sl1').classList.remove('on'); $('searchResults').style.display = 'block';
-    $('searchTitle').textContent = d.found ? '✅ ' + esc(d.query) + ' found' : '❌ Not found';
-    if (d.found && d.results && d.results.length) {
-      $('searchThead').innerHTML = '<tr><th>Number</th><th>TX</th><th>Name</th><th>Phone</th><th>GCash</th><th>Date</th></tr>';
-      $('searchTbody').innerHTML = d.results.map(r => '<tr class="clickable-row" onclick="openTxDetail(\'' + esc(r.transactionId) + '\')"><td class="mono">' + esc(r.number) + '</td><td>' + esc(r.transactionId) + '</td><td>' + esc(r.name) + '</td><td>' + esc(r.phone) + '</td><td>' + esc(r.gcashRef) + '</td><td>' + esc(r.timestamp) + '</td></tr>').join('');
+    $('searchTitle').textContent = d.found ? '✅ ' + d.query + ' found' : '❌ Not found';
+    if (d.found) {
+      $('searchThead').innerHTML = '<tr><th>Number</th><th>TX</th><th>Name</th><th>Phone</th><th>GCash</th><th>Date</th><th>Time</th></tr>';
+      $('searchTbody').innerHTML = d.results.map(function(r) { return '<tr class="clickable-row" onclick="openTxDetail(\'' + esc(r.transactionId) + '\')"><td class="mono">' + esc(r.number) + '</td><td>' + esc(r.transactionId) + '</td><td>' + esc(r.name) + '</td><td>' + esc(r.phone) + '</td><td>' + esc(r.gcashRef) + '</td><td>' + esc(r.date) + '</td><td>' + esc(r.time) + '</td></tr>'; }).join('');
     } else { $('searchThead').innerHTML = ''; $('searchTbody').innerHTML = '<tr><td class="tbl-empty">Not sold.</td></tr>'; }
-  } catch (e) { $('sl1').classList.remove('on'); toast('Error: ' + e.message, 'err'); }
+  }).catch(function(e) { $('sl1').classList.remove('on'); toast('Error', 'err'); });
 }
 
-async function searchBuyerFn() {
-  const q = sanitizeInput($('searchBuyer').value, 50);
-  if (!q) return toast('Enter term.', 'err');
+function searchBuyerFn() {
+  var q = $('searchBuyer').value.trim(); if (!q) return toast('Enter term.', 'err');
   $('sl2').classList.add('on'); $('searchResults').style.display = 'none';
-  try {
-    const d = await adminApi('adminSearchBuyer', { query: q });
+  adminApi('adminSearchBuyer', { query: q }).then(function(d) {
     $('sl2').classList.remove('on'); $('searchResults').style.display = 'block';
-    $('searchTitle').textContent = (d.total||0) + ' result(s)';
-    if (d.total > 0 && d.results) {
-      $('searchThead').innerHTML = '<tr><th>Date</th><th>TX</th><th>Name</th><th>Phone</th><th>Qty</th><th>Amt</th><th>Status</th></tr>';
-      $('searchTbody').innerHTML = d.results.map(r => '<tr class="clickable-row" onclick="openTxDetail(\'' + esc(r.transactionId) + '\')"><td>' + esc(r.timestamp) + '</td><td>' + esc(r.transactionId) + '</td><td>' + esc(r.name) + '</td><td>' + esc(r.phone) + '</td><td>' + Number(r.quantity).toLocaleString() + '</td><td>₱' + Number(r.amount).toLocaleString() + '</td><td><span class="badge ' + statusClass(r.status) + '">' + esc(r.status) + '</span></td></tr>').join('');
-    } else { $('searchThead').innerHTML = ''; $('searchTbody').innerHTML = '<tr><td class="tbl-empty">None found.</td></tr>'; }
-  } catch (e) { $('sl2').classList.remove('on'); toast('Error: ' + e.message, 'err'); }
+    $('searchTitle').textContent = d.total + ' result(s)';
+    if (d.total > 0) {
+      $('searchThead').innerHTML = '<tr><th>Date</th><th>Time</th><th>TX</th><th>Name</th><th>Phone</th><th>Qty</th><th>Amt</th><th>Status</th></tr>';
+      $('searchTbody').innerHTML = d.results.map(function(r) { return '<tr class="clickable-row" onclick="openTxDetail(\'' + esc(r.transactionId) + '\')"><td>' + esc(r.date) + '</td><td>' + esc(r.time) + '</td><td>' + esc(r.transactionId) + '</td><td>' + esc(r.name) + '</td><td>' + esc(r.phone) + '</td><td>' + Number(r.quantity).toLocaleString() + '</td><td>₱' + Number(r.amount).toLocaleString() + '</td><td><span class="badge ' + statusClass(r.status) + '">' + esc(r.status) + '</span></td></tr>'; }).join('');
+    } else { $('searchThead').innerHTML = ''; $('searchTbody').innerHTML = '<tr><td class="tbl-empty">None.</td></tr>'; }
+  }).catch(function(e) { $('sl2').classList.remove('on'); toast('Error', 'err'); });
 }
 
-async function searchDuplicates() {
+function searchDuplicates() {
   $('dupeBtn').disabled = true; $('sl3').classList.add('on');
   $('dupeResult').style.display = 'none'; $('searchResults').style.display = 'none';
-  try {
-    const d = await adminApi('adminSearchDuplicates');
+  adminApi('adminSearchDuplicates').then(function(d) {
     $('sl3').classList.remove('on'); $('dupeBtn').disabled = false;
     if (!d || !d.success) { toast(d ? d.error : 'Failed', 'err'); return; }
     $('dupeResult').style.display = 'block';
-    const summary = $('dupeSummary');
+    var summary = $('dupeSummary');
     if ((d.uniqueDuplicatedNumbers || 0) === 0) {
       summary.style.cssText = 'background:rgba(0,230,118,.08);border:1px solid rgba(0,230,118,.2);color:var(--ok)';
       summary.innerHTML = '✅ <strong>No duplicates!</strong><br><span style="font-size:.8rem;color:var(--sub)">All ' + (d.totalNumbers || 0).toLocaleString() + ' numbers unique.</span>';
     } else {
       summary.style.cssText = 'background:rgba(255,59,59,.08);border:1px solid rgba(255,59,59,.2);color:var(--err)';
       summary.innerHTML = '⚠️ <strong>' + d.uniqueDuplicatedNumbers + ' duplicated!</strong>';
-      if (d.duplicates && d.duplicates.length) {
-        $('searchResults').style.display = 'block';
-        $('searchTitle').textContent = '🔄 Duplicates';
-        $('searchThead').innerHTML = '<tr><th>Number</th><th>TX</th><th>Name</th><th>Phone</th><th>GCash</th><th>Date</th><th>#</th></tr>';
-        $('searchTbody').innerHTML = d.duplicates.map(r => '<tr class="clickable-row" style="background:rgba(255,59,59,.03)" onclick="openTxDetail(\'' + esc(r.transactionId || '') + '\')"><td class="mono" style="color:var(--err)">' + esc(r.number) + '</td><td style="font-size:.73rem">' + esc(r.transactionId || '') + '</td><td>' + esc(r.name || '') + '</td><td>' + esc(r.phone || '') + '</td><td>' + esc(r.gcashRef || '') + '</td><td>' + esc(r.timestamp || '') + '</td><td><span class="badge fail">×' + (r.occurrences || 0) + '</span></td></tr>').join('');
-      }
+      $('searchResults').style.display = 'block';
+      $('searchTitle').textContent = '🔄 Duplicates';
+      $('searchThead').innerHTML = '<tr><th>Number</th><th>TX</th><th>Name</th><th>Phone</th><th>GCash</th><th>Date</th><th>#</th></tr>';
+      $('searchTbody').innerHTML = (d.duplicates || []).map(function(r) { return '<tr class="clickable-row" style="background:rgba(255,59,59,.03)" onclick="openTxDetail(\'' + esc(r.transactionId || '') + '\')"><td class="mono" style="color:var(--err)">' + esc(r.number) + '</td><td style="font-size:.73rem">' + esc(r.transactionId || '') + '</td><td>' + esc(r.name || '') + '</td><td>' + esc(r.phone || '') + '</td><td>' + esc(r.gcashRef || '') + '</td><td>' + esc(r.timestamp || '') + '</td><td><span class="badge fail">×' + (r.occurrences || 0) + '</span></td></tr>'; }).join('');
     }
-  } catch (e) { $('sl3').classList.remove('on'); $('dupeBtn').disabled = false; toast(e.message, 'err'); }
+  }).catch(function(e) { $('sl3').classList.remove('on'); $('dupeBtn').disabled = false; toast(e.message, 'err'); });
 }
 
 
-// ═══════════════════════════════════════════════════════════
-//   TOOLS
-// ═══════════════════════════════════════════════════════════
+// ── TOOLS ────────────────────────────────────────────────────
 
-async function addNumber() {
-  const raw = getDigitsOnly($('addNum').value).substring(0, 6);
-  const num = pad6(raw);
+function addNumber() {
+  var num = pad6($('addNum').value.trim().replace(/\D/g, ''));
   if (!num || !isValidNumber(num)) return toast('Invalid (1st digit 0 or 1).', 'err');
   showOv('Adding...', '');
-  try {
-    const d = await adminApi('adminAddNumber', { number: num, name: sanitizeInput($('addName').value, MAX_NAME_LEN), phone: getDigitsOnly($('addPhone').value).substring(0, 11) });
+  adminApi('adminAddNumber', { number: num, name: $('addName').value.trim(), phone: $('addPhone').value.trim() }).then(function(d) {
     hideOv();
-    if (d.success) { toast('✅ ' + (d.message||'Added'), 'suc'); $('addNum').value = ''; $('addName').value = ''; $('addPhone').value = ''; loadDashboard(); }
-    else toast(d.error || 'Failed', 'err');
-  } catch (e) { hideOv(); toast(e.message, 'err'); }
+    if (d.success) { toast('✅ ' + d.message, 'suc'); $('addNum').value = ''; $('addName').value = ''; $('addPhone').value = ''; loadDashboard(); }
+    else toast(d.error, 'err');
+  }).catch(function(e) { hideOv(); toast(e.message, 'err'); });
 }
 
-async function removeNumber() {
-  const raw = getDigitsOnly($('removeNum').value).substring(0, 6);
-  const num = pad6(raw);
+function removeNumber() {
+  var num = pad6($('removeNum').value.trim().replace(/\D/g, ''));
   if (!num || !isValidNumber(num)) return toast('Invalid.', 'err');
   showOv('Removing...', '');
-  try {
-    const d = await adminApi('adminRemoveNumber', { number: num });
+  adminApi('adminRemoveNumber', { number: num }).then(function(d) {
     hideOv();
-    if (d.success) { toast('✅ ' + (d.message||'Removed'), 'suc'); $('removeNum').value = ''; loadDashboard(); }
-    else toast(d.error || 'Failed', 'err');
-  } catch (e) { hideOv(); toast(e.message, 'err'); }
+    if (d.success) { toast('✅ ' + d.message, 'suc'); $('removeNum').value = ''; loadDashboard(); }
+    else toast(d.error, 'err');
+  }).catch(function(e) { hideOv(); toast(e.message, 'err'); });
 }
 
 
-// ═══════════════════════════════════════════════════════════
-//   SETTINGS
-// ═══════════════════════════════════════════════════════════
+// ── SETTINGS ─────────────────────────────────────────────────
 
-async function loadSettingsFn() {
-  try {
-    const d = await adminApi('adminInit');
+function loadSettingsFn() {
+  adminApi('adminInit').then(function(d) {
     if (d && d.success && d.settings) applySettingsToForm(d.settings);
-  } catch (e) { /* silent */ }
+  }).catch(function() {});
 }
 
 function applySettingsToForm(s) {
@@ -1309,95 +1283,80 @@ function applySettingsToForm(s) {
   $('setMinQty').value = s.min_quantity || '100';
   $('setMaxQty').value = s.max_quantity || '10000';
   $('setAnnouncement').value = s.announcement || '';
-  $('setMaintenance').value = String(s.maintenance_mode || 'false');
+  $('setMaintenance').value = s.maintenance_mode || 'false';
 }
 
-async function saveSettings() {
-  const np = $('setNewPass').value, np2 = $('setNewPass2').value;
+function saveSettings() {
+  var np = $('setNewPass').value, np2 = $('setNewPass2').value;
   if (np && np.length < 6) return toast('Min 6 chars.', 'err');
   if (np && np !== np2) return toast("Passwords don't match.", 'err');
   showOv('Saving...', '');
-  const p = {
-    gcash_name: sanitizeInput($('setGcashName').value, 60),
-    gcash_number: sanitizeInput($('setGcashNum').value, 20),
-    lottery_name: sanitizeInput($('setLotteryName').value, 60),
-    draw_date: $('setDrawDate').value,
-    price_per_number: $('setPrice').value,
-    min_quantity: $('setMinQty').value,
-    max_quantity: $('setMaxQty').value,
-    announcement: sanitizeInput($('setAnnouncement').value, 500),
+  var p = {
+    gcash_name: $('setGcashName').value.trim(), gcash_number: $('setGcashNum').value.trim(),
+    lottery_name: $('setLotteryName').value.trim(), draw_date: $('setDrawDate').value,
+    price_per_number: $('setPrice').value, min_quantity: $('setMinQty').value,
+    max_quantity: $('setMaxQty').value, announcement: $('setAnnouncement').value.trim(),
     maintenance_mode: $('setMaintenance').value
   };
   if (np) p.new_password = np;
-  try {
-    const d = await adminApi('adminUpdateSettings', p);
+  adminApi('adminUpdateSettings', p).then(function(d) {
     hideOv();
-    if (d.success) {
-      toast('✅ Saved!', 'suc');
-      $('setNewPass').value = ''; $('setNewPass2').value = '';
-      if (np) { toast('Password changed. Logging out...', 'warn'); setTimeout(doLogout, 2000); }
-    } else toast(d.error || 'Failed', 'err');
-  } catch (e) { hideOv(); toast('Error: ' + e.message, 'err'); }
+    if (d.success) { toast('✅ Saved!', 'suc'); $('setNewPass').value = ''; $('setNewPass2').value = ''; if (np) { toast('Password changed. Logging out...', 'warn'); setTimeout(doLogout, 2000); } }
+    else toast(d.error, 'err');
+  }).catch(function(e) { hideOv(); toast('Error', 'err'); });
 }
 
 
-// ═══════════════════════════════════════════════════════════
-//   EXPORT
-// ═══════════════════════════════════════════════════════════
+// ── EXPORT ───────────────────────────────────────────────────
 
-async function exportData(type) {
+function exportData(type) {
   showOv('Exporting...', '');
-  try {
-    const d = await adminApi('adminExportData', { type: type });
+  adminApi('adminExportData', { type: type }).then(function(d) {
     hideOv();
-    if (!d || !d.success) return toast(d ? d.error : 'Failed', 'err');
-    let csv = d.headers.join(',') + '\n';
-    (d.data || []).forEach(r => { csv += r.map(c => '"' + String(c||'').replace(/"/g, '""') + '"').join(',') + '\n'; });
-    const a = document.createElement('a');
+    if (!d.success) return toast(d.error, 'err');
+    var csv = d.headers.join(',') + '\n';
+    d.data.forEach(function(r) { csv += r.map(function(c) { return '"' + String(c).replace(/"/g, '""') + '"'; }).join(',') + '\n'; });
+    var a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
     a.download = 'PisoPalaro-' + type + '-' + new Date().toISOString().slice(0, 10) + '.csv';
     a.click(); toast('Exported ' + (d.total || 0) + ' rows!', 'suc');
-  } catch (e) { hideOv(); toast('Error: ' + e.message, 'err'); }
+  }).catch(function(e) { hideOv(); toast('Error', 'err'); });
 }
 
 
-// ═══════════════════════════════════════════════════════════
-//   AUTO REFRESH
-// ═══════════════════════════════════════════════════════════
+// ── AUTO REFRESH ─────────────────────────────────────────────
 
 function startAutoRefresh() {
   if (_art) clearInterval(_art);
-  _art = setInterval(() => {
+  _art = setInterval(function() {
     if (!TOKEN) return;
     if (activeP === 'dashboard') {
-      adminApi('adminDashboard').then(d => {
+      adminApi('adminDashboard').then(function(d) {
         if (d && d.success) renderDashboard(d);
-      }).catch(() => {});
+      }).catch(function() {});
     }
   }, 15000);
 }
 
 
-// ═══════════════════════════════════════════════════════════
-//   INIT
-// ═══════════════════════════════════════════════════════════
+// ── INIT ─────────────────────────────────────────────────────
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', function() {
   detectMode();
 
   if (IS_ADMIN_MODE) {
-    $('loginPass').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
-    $('loginUser').addEventListener('keydown', e => { if (e.key === 'Enter') $('loginPass').focus(); });
+    $('loginPass').addEventListener('keydown', function(e) { if (e.key === 'Enter') doLogin(); });
+    $('loginUser').addEventListener('keydown', function(e) { if (e.key === 'Enter') $('loginPass').focus(); });
   } else {
     setTodayDate();
     $('dP').textContent = GCASH_NUMBER;
     $('dN').textContent = GCASH_NAME;
 
-    const ni = $('fN');
+    var ni = $('fN');
     ni.maxLength = MAX_NAME_LEN;
-    ni.addEventListener('input', () => {
-      const p = ni.selectionStart;
-      ni.value = ni.value.replace(/[<>"'`;{}()\\]/g, '').replace(/\b\w/g, c => c.toUpperCase());
+    ni.addEventListener('input', function() {
+      var p = ni.selectionStart;
+      ni.value = ni.value.replace(/[<>"'`;{}()\\]/g, '').replace(/\b\w/g, function(c) { return c.toUpperCase(); });
       if (ni.value.length > MAX_NAME_LEN) ni.value = ni.value.substring(0, MAX_NAME_LEN);
       ni.setSelectionRange(Math.min(p, ni.value.length), Math.min(p, ni.value.length));
     });
@@ -1406,7 +1365,7 @@ document.addEventListener('DOMContentLoaded', () => {
     $('fP').addEventListener('blur', updatePhoneStatus);
     $('fQ').addEventListener('input', calc);
     $('fQ').addEventListener('blur', function() {
-      const v = parseInt(this.value);
+      var v = parseInt(this.value);
       if (!isNaN(v) && v < MIN_QTY && this.value !== '') { this.value = MIN_QTY; toast('Min ' + MIN_QTY, 'warn'); }
       if (!isNaN(v) && v > MAX_QTY) { this.value = MAX_QTY; toast('Max ' + MAX_QTY.toLocaleString(), 'warn'); }
       calc();
@@ -1417,7 +1376,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setInterval(setTodayDate, 60000);
   }
 
-  document.addEventListener('keydown', e => {
+  document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') { closeConfirm(); closeDetail(); }
     if (e.key === 'Enter' && IS_ADMIN_MODE) {
       if (document.activeElement === $('searchNum')) searchNumber();
@@ -1425,8 +1384,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  if ($('confirmModal')) $('confirmModal').addEventListener('click', e => { if (e.target === $('confirmModal')) closeConfirm(); });
-  if ($('detailModal')) $('detailModal').addEventListener('click', e => { if (e.target === $('detailModal')) closeDetail(); });
+  $('confirmModal').addEventListener('click', function(e) { if (e.target === $('confirmModal')) closeConfirm(); });
+  $('detailModal').addEventListener('click', function(e) { if (e.target === $('detailModal')) closeDetail(); });
 });
 </script>
 </body>
