@@ -1294,9 +1294,10 @@ function confirmDeleteAll() {
   $('confirmYes').textContent = 'Delete All'; $('confirmYes').className = 'btn-sm btn-red';
   $('confirmYes').onclick = function() { doDeleteAll(); }; $('confirmModal').classList.add('on');
 }
+// ✅ FIXED — add confirm: 'DELETE_ALL' parameter
 function doDeleteAll() {
   closeConfirm(); showOv('Deleting all transactions & numbers...', 'This may take a moment');
-  adminApi('adminDeleteAllTransactions').then(function(d) {
+  adminApi('adminDeleteAllTransactions', { confirm: 'DELETE_ALL' }).then(function(d) {
     hideOv();
     if (d.success) { toast('🗑️ All deleted!', 'suc'); refreshAfterAction(); }
     else toast(d.error || 'Failed', 'err');
@@ -1499,4 +1500,5 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 </body>
 </html>
+
 
