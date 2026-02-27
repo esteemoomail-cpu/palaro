@@ -535,37 +535,48 @@ tr:hover td{background:rgba(255,215,0,.02)}
 
 <script>
 /* ═══════════════════════════════════════════════════════════
-   PISO PALARO — Frontend v3.0
+   PISO PALARO — Frontend v4.0 (Optimized)
    Numbers: 000000–199999 (1st digit 0|1, rest 0-9)
    ═══════════════════════════════════════════════════════════ */
 
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyzXbV4iGTtgImjUV2JllXOIDpDLiie38l4y_b3DecldO-8sCOeIofoZihD31e-UHJf2A/exec'; // ← PUT YOUR DEPLOYED WEB APP URL HERE
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwq7grZ-IzjEUPj_Nz9MBdwzo6Lb_VrKCvAEFMKh8mtWCYQ2SH6meyiAuKNfwVNlav5MA/exec'; // ← PASTE YOUR DEPLOYED WEB APP URL HERE
 const ADMIN_SECRET = 'admin';
 const TOTAL_POOL = 200000;
 const MAX_RETRY = 3;
 const RETRY_MS = [3000, 5000, 8000];
-const FETCH_TIMEOUT = 90000;
+const FETCH_TIMEOUT = 120000;
 const MAX_NAME_LEN = 40;
 
-let GCASH_NUMBER = '0917-123-4567', GCASH_NAME = 'Juan Dela Cruz';
+let GCASH_NUMBER = '09171234567';
+let GCASH_NAME = 'Juan Dela Cruz';
 let PRICE_PER = 1, MIN_QTY = 100, MAX_QTY = 10000, LOTTERY_NAME = 'PISO PALARO';
 let myNums = [], serverOnline = false, TOKEN = '';
 let currentPage = { tx: 1, num: 1 }, IS_ADMIN_MODE = false;
 let _detailTx = null;
 let _art = null, _kat = null, activeP = 'dashboard';
 let _purchaseInProgress = false;
+let _fetchController = null;
 
 function $(id) { return document.getElementById(id); }
 function show(id) { $(id).classList.remove('hide'); }
 function hide(id) { $(id).classList.add('hide'); }
 function pad6(n) { return String(n).padStart(6, '0').substring(0, 6); }
-function esc(s) { return String(s).replace(/[&<>"']/g, function(c) { return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+
+function esc(s) {
+  var d = document.createElement('div');
+  d.appendChild(document.createTextNode(String(s)));
+  return d.innerHTML;
+}
+
 function getDigitsOnly(s) { return String(s).replace(/\D/g, ''); }
 function isValidPhone(s) { var d = getDigitsOnly(s); return d.length === 11 && d.indexOf('09') === 0; }
-function isValidNumber(num) { return /^\d{6}$/.test(num) && parseInt(num[0]) <= 1; }
+function isValidNumber(num) { return /^\d{6}$/.test(num) && parseInt(num[0], 10) <= 1; }
 
 function sanitizeInput(str, maxLen) {
-  str = String(str || '').trim().replace(/<[^>]*>/g, '').replace(/[<>"'`;{}()\\]/g, '').replace(/[\x00-\x1F\x7F]/g, '');
+  str = String(str || '').trim()
+    .replace(/<[^>]*>/g, '')
+    .replace(/[<>"'`;{}()\\]/g, '')
+    .replace(/[\x00-\x1F\x7F]/g, '');
   return maxLen ? str.substring(0, maxLen) : str;
 }
 
@@ -585,7 +596,8 @@ function goToPublicPage() { window.open(location.href.split('?')[0], '_blank'); 
 
 function cpField(id) {
   navigator.clipboard.writeText($(id).textContent)
-    .then(function() { toast('📋 Copied!', 'suc'); }).catch(function() { toast('Copy failed', 'err'); });
+    .then(function() { toast('📋 Copied!', 'suc'); })
+    .catch(function() { toast('Copy failed', 'err'); });
 }
 
 function detectMode() {
@@ -597,7 +609,7 @@ function detectMode() {
   }
 }
 
-// ── Fetch ─────────────────────────────────────────────────────
+// ── Fetch with abort support ──────────────────────────────────
 function safeFetch(url, ms) {
   return new Promise(function(resolve, reject) {
     var c = new AbortController();
@@ -605,10 +617,12 @@ function safeFetch(url, ms) {
     fetch(url, { redirect: 'follow', signal: c.signal })
       .then(function(r) {
         clearTimeout(t);
+        if (!r.ok) throw new Error('HTTP_' + r.status);
         return r.text();
       })
       .then(function(txt) {
-        if (txt.trim().indexOf('<!DOCTYPE') === 0) throw new Error('HTML_RESPONSE');
+        txt = txt.trim();
+        if (txt.indexOf('<!DOCTYPE') === 0 || txt.indexOf('<html') === 0) throw new Error('HTML_RESPONSE');
         try { resolve(JSON.parse(txt)); }
         catch (e) {
           var m = txt.match(/\{[\s\S]*\}/);
@@ -618,7 +632,8 @@ function safeFetch(url, ms) {
       })
       .catch(function(err) {
         clearTimeout(t);
-        reject(err.name === 'AbortError' ? new Error('TIMEOUT') : err);
+        if (err.name === 'AbortError') reject(new Error('TIMEOUT'));
+        else reject(err);
       });
   });
 }
@@ -768,7 +783,7 @@ function submitPurchase() {
 function attemptPurchase(nm, ph, qt, ref, tryN) {
   if (tryN === 0) showOv('Generating ' + qt.toLocaleString() + ' numbers...', 'Please wait — this may take a moment');
   else {
-    showOv('Retry ' + tryN + '/' + MAX_RETRY, '');
+    showOv('Retry ' + tryN + '/' + MAX_RETRY, 'Retrying in a moment...');
     setTimeout(function() { doAttemptPurchase(nm, ph, qt, ref, tryN); }, RETRY_MS[tryN - 1]);
     return;
   }
@@ -776,7 +791,8 @@ function attemptPurchase(nm, ph, qt, ref, tryN) {
 }
 
 function doAttemptPurchase(nm, ph, qt, ref, tryN) {
-  safeFetch(SCRIPT_URL + '?' + new URLSearchParams({ action: 'purchase', quantity: qt, name: nm, phone: ph, gcashRef: ref }), FETCH_TIMEOUT)
+  var params = new URLSearchParams({ action: 'purchase', quantity: qt, name: nm, phone: ph, gcashRef: ref });
+  safeFetch(SCRIPT_URL + '?' + params, FETCH_TIMEOUT)
     .then(function(d) {
       if (d.success) {
         hideOv(); $('buyBtn').disabled = false; _purchaseInProgress = false;
@@ -805,7 +821,17 @@ function showResult(d, nm, ph, qt, ref) {
   $('rA').textContent = '₱ ' + Number(d.amount).toLocaleString(undefined, { minimumFractionDigits: 2 });
   $('rR').textContent = ref; $('rS').textContent = '⏳ PENDING';
   $('rC').textContent = myNums.length.toLocaleString();
-  $('nG').innerHTML = myNums.map(function(n) { return '<div class="ni">' + n + '</div>'; }).join('');
+  // Build numbers grid using DocumentFragment for performance
+  var frag = document.createDocumentFragment();
+  myNums.forEach(function(n) {
+    var div = document.createElement('div');
+    div.className = 'ni';
+    div.textContent = n;
+    frag.appendChild(div);
+  });
+  var nG = $('nG');
+  nG.innerHTML = '';
+  nG.appendChild(frag);
   scrollTo({ top: 0, behavior: 'smooth' });
 }
 
@@ -839,7 +865,7 @@ function again() {
 
 function adminApi(a, p) {
   p = p || {}; p.action = a; p.token = TOKEN;
-  return safeFetch(SCRIPT_URL + '?' + new URLSearchParams(p), 90000);
+  return safeFetch(SCRIPT_URL + '?' + new URLSearchParams(p), 120000);
 }
 
 function doLogin() {
@@ -847,22 +873,23 @@ function doLogin() {
   if (!u || !p) return toast('Enter credentials.', 'err');
   $('loginBtn').disabled = true; showOv('Signing in...', '');
   adminApi('adminLogin', { username: u, password: p }).then(function(d) {
+    hideOv(); $('loginBtn').disabled = false;
     if (d.success) {
-      TOKEN = d.token; $('adminUser').textContent = u;
+      TOKEN = d.token; $('adminUser').textContent = d.username || u;
       $('adminLogin').style.display = 'none'; $('adminPanel').style.display = 'block';
       toast('Welcome!', 'suc');
       showOv('Loading dashboard...', '');
       loadDashboard().then(function() { hideOv(); }).catch(function() { hideOv(); });
       startAutoRefresh(); startKeepAlive();
-    } else toast(d.error, 'err');
-    hideOv(); $('loginBtn').disabled = false;
+    } else toast(d.error || 'Login failed', 'err');
   }).catch(function(e) { toast(e.message, 'err'); hideOv(); $('loginBtn').disabled = false; });
 }
 
 function doLogout() {
   TOKEN = ''; $('adminPanel').style.display = 'none'; $('adminLogin').style.display = 'flex';
   $('loginUser').value = ''; $('loginPass').value = '';
-  if (_art) clearInterval(_art); if (_kat) clearInterval(_kat);
+  if (_art) { clearInterval(_art); _art = null; }
+  if (_kat) { clearInterval(_kat); _kat = null; }
   toast('Logged out.', 'warn');
 }
 
@@ -889,9 +916,7 @@ function goPage(n) {
 
 function statusClass(s) { return s === 'APPROVED' ? 'ok' : s === 'PENDING' ? 'pend' : 'dec'; }
 
-
 // ── DASHBOARD ────────────────────────────────────────────────
-
 function loadDashboard() {
   $('feedList').innerHTML = '<li class="tbl-empty">Loading...</li>';
   return adminApi('adminDashboard').then(function(d) {
@@ -905,26 +930,17 @@ function loadDashboard() {
 function refreshDashboard() { toast('Refreshing...', 'warn'); loadDashboard(); }
 
 function renderDashboard(d) {
-  var sold = Number(d.sold) || 0;
-  var remaining = Number(d.remaining) || 0;
-  var totalPool = Number(d.totalPool) || TOTAL_POOL;
-  var percentSold = Number(d.percentSold) || 0;
-  var totalRevenue = Number(d.totalRevenue) || 0;
-  var pendingTx = Number(d.pendingTransactions) || 0;
-  var approvedTx = Number(d.approvedTransactions) || 0;
-  var declinedTx = Number(d.declinedTransactions) || 0;
-  var uniqueBuyers = Number(d.uniqueBuyers) || 0;
+  $('dsSold').textContent = (Number(d.sold) || 0).toLocaleString();
+  $('dsRemain').textContent = (Number(d.remaining) || 0).toLocaleString();
+  $('dsPct').textContent = (d.percentSold || 0) + '% sold';
+  $('dsRevenue').textContent = '₱' + (Number(d.totalRevenue) || 0).toLocaleString();
+  $('dsPending').textContent = (Number(d.pendingTransactions) || 0).toLocaleString();
+  $('dsApproved').textContent = (Number(d.approvedTransactions) || 0).toLocaleString();
+  $('dsDeclined').textContent = (Number(d.declinedTransactions) || 0).toLocaleString();
+  $('dsBuyers').textContent = (Number(d.uniqueBuyers) || 0).toLocaleString();
 
-  $('dsSold').textContent = sold.toLocaleString();
-  $('dsRemain').textContent = remaining.toLocaleString();
-  $('dsPct').textContent = percentSold + '% sold';
-  $('dsRevenue').textContent = '₱' + totalRevenue.toLocaleString();
-  $('dsPending').textContent = pendingTx.toLocaleString();
-  $('dsApproved').textContent = approvedTx.toLocaleString();
-  $('dsDeclined').textContent = declinedTx.toLocaleString();
-  $('dsBuyers').textContent = uniqueBuyers.toLocaleString();
-
-  var pct = totalPool > 0 ? (sold / totalPool) * 100 : 0;
+  var sold = Number(d.sold) || 0, tp = Number(d.totalPool) || TOTAL_POOL;
+  var pct = tp > 0 ? (sold / tp) * 100 : 0;
   var bar = $('dsBar');
   bar.style.width = pct + '%';
   bar.classList.remove('mid', 'low');
@@ -933,45 +949,31 @@ function renderDashboard(d) {
 
   var acts = d.recentActivity || [];
   var list = $('feedList');
-
-  if (!acts || acts.length === 0) {
-    list.innerHTML = '<li class="tbl-empty">No activity yet.</li>';
-    return;
-  }
+  if (!acts.length) { list.innerHTML = '<li class="tbl-empty">No activity yet.</li>'; return; }
 
   var h = '';
   for (var i = 0; i < acts.length; i++) {
-    var a = acts[i];
-    var dc = statusClass(a.status);
-    var txE = esc(a.transactionId || '');
-    var nameE = esc(a.name || 'Unknown');
-    var qty = Number(a.quantity) || 0;
-    var amt = Number(a.amount) || 0;
-    var ts = esc(a.timestamp || '');
-    var st = esc(a.status || 'UNKNOWN');
-
-    h += '<li style="cursor:pointer;align-items:flex-start" onclick="openTxDetail(\'' + txE + '\')">' +
+    var a = acts[i], dc = statusClass(a.status);
+    h += '<li style="cursor:pointer;align-items:flex-start" onclick="openTxDetail(\'' + esc(a.transactionId) + '\')">' +
       '<div class="dot ' + dc + '" style="margin-top:4px;flex-shrink:0"></div>' +
       '<div style="flex:1;min-width:0">' +
         '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:6px">' +
-          '<strong style="word-break:break-word">' + nameE + '</strong>' +
-          '<span class="badge ' + dc + '" style="flex-shrink:0">' + st + '</span>' +
+          '<strong style="word-break:break-word">' + esc(a.name) + '</strong>' +
+          '<span class="badge ' + dc + '" style="flex-shrink:0">' + esc(a.status) + '</span>' +
         '</div>' +
-        '<div style="font-size:.8rem;color:var(--sub);margin-top:2px">' + qty.toLocaleString() + ' entries · ₱' + amt.toLocaleString() + '</div>' +
-        '<span class="time" style="display:block;margin-top:2px">' + ts + '<br>' + txE + '</span>' +
+        '<div style="font-size:.8rem;color:var(--sub);margin-top:2px">' + (Number(a.quantity)||0).toLocaleString() + ' entries · ₱' + (Number(a.amount)||0).toLocaleString() + '</div>' +
+        '<span class="time" style="display:block;margin-top:2px">' + esc(a.timestamp) + '<br>' + esc(a.transactionId) + '</span>' +
       '</div></li>';
   }
-
   list.innerHTML = h;
 }
 
-
 // ── TRANSACTIONS ─────────────────────────────────────────────
-
 function buildTxActions(status, txId) {
+  var safe = esc(txId);
   var a = '<div class="tx-actions">';
-  if (status === 'PENDING') a += '<button class="btn-sm btn-green" onclick="event.stopPropagation();confirmApprove(\'' + txId + '\')">✓</button><button class="btn-sm btn-red" onclick="event.stopPropagation();confirmDecline(\'' + txId + '\')">✗</button>';
-  a += '<button class="btn-sm btn-orange" onclick="event.stopPropagation();confirmDelete(\'' + txId + '\')">🗑</button></div>';
+  if (status === 'PENDING') a += '<button class="btn-sm btn-green" onclick="event.stopPropagation();confirmApprove(\'' + safe + '\')">✓</button><button class="btn-sm btn-red" onclick="event.stopPropagation();confirmDecline(\'' + safe + '\')">✗</button>';
+  a += '<button class="btn-sm btn-orange" onclick="event.stopPropagation();confirmDelete(\'' + safe + '\')">🗑</button></div>';
   return a;
 }
 
@@ -990,7 +992,7 @@ function renderTransactions(d) {
       '<td>' + esc(t.name) + '</td><td>' + esc(t.phone) + '</td><td>' + esc(t.gcashRef) + '</td>' +
       '<td>' + Number(t.quantity).toLocaleString() + '</td><td>₱' + Number(t.amount).toLocaleString() + '</td>' +
       '<td><span class="badge ' + sc + '">' + esc(t.status) + '</span></td>' +
-      '<td>' + buildTxActions(t.status, txE) + '</td></tr>';
+      '<td>' + buildTxActions(t.status, t.transactionId) + '</td></tr>';
   });
   b.innerHTML = h;
   renderPg('txPagination', d.page, d.totalPages, 'loadTransactions');
@@ -1007,9 +1009,7 @@ function loadTransactions(pg) {
   }).catch(function(e) { $('txBody').innerHTML = '<tr><td colspan="10" class="tbl-empty">Error: ' + esc(e.message) + '</td></tr>'; });
 }
 
-
 // ── NUMBERS ──────────────────────────────────────────────────
-
 function refreshNumbers() { loadNumbers(); }
 
 function loadNumbers(pg) {
@@ -1032,7 +1032,6 @@ function loadNumbers(pg) {
   }).catch(function(e) { $('numBody').innerHTML = '<tr><td colspan="7" class="tbl-empty">Error</td></tr>'; });
 }
 
-
 // ── Pagination ───────────────────────────────────────────────
 function renderPg(cid, cur, tot, fn) {
   var c = $(cid); if (tot <= 1) { c.innerHTML = ''; return; }
@@ -1047,9 +1046,7 @@ function renderPg(cid, cur, tot, fn) {
   c.innerHTML = h;
 }
 
-
 // ── TRANSACTION DETAIL ───────────────────────────────────────
-
 function openTxDetail(txId) {
   showOv('Loading...', '');
   adminApi('adminGetTransaction', { transactionId: txId }).then(function(d) {
@@ -1062,7 +1059,7 @@ function openTxDetail(txId) {
 
 function renderTxDetail(d) {
   var tx = d.transaction; _detailTx = tx;
-  $('detailTitle').innerHTML = '📋 Transaction Detail';
+  $('detailTitle').textContent = '📋 Transaction Detail';
   $('detailSub').textContent = tx.transactionId;
 
   var fields = [
@@ -1073,39 +1070,45 @@ function renderTxDetail(d) {
     ['Status', '<span class="badge ' + statusClass(tx.status) + '">' + esc(tx.status) + '</span>']
   ];
   $('detailGrid').innerHTML = fields.map(function(f) {
-    return '<div class="ri"><div class="rl">' + f[0] + '</div><div class="rv"' + (f[2] ? ' style="' + f[2] + '"' : '') + '>' +
+    return '<div class="ri"><div class="rl">' + esc(f[0]) + '</div><div class="rv"' + (f[2] ? ' style="' + f[2] + '"' : '') + '>' +
     (f[0] === 'Status' ? f[1] : esc(String(f[1]))) + '</div></div>';
   }).join('');
 
   var allNums = [], nh = '';
   if (tx.soldNumbers && tx.soldNumbers.length > 0) {
-    allNums = tx.soldNumbers;
-    nh = '<h3>🎰 Numbers (' + tx.soldCount.toLocaleString() + ')</h3><div class="nbox" style="max-height:300px"><div class="ngrid">' +
-      tx.soldNumbers.map(function(n) { return '<div class="ni">' + esc(n) + '</div>'; }).join('') + '</div></div>';
+    allNums = tx.soldNumbers.map(function(n) { return pad6(n); });
+    nh = '<h3>🎰 Numbers (' + tx.soldCount.toLocaleString() + ')</h3><div class="nbox" style="max-height:300px"><div class="ngrid">';
+    var display = allNums.slice(0, 500);
+    nh += display.map(function(n) { return '<div class="ni">' + esc(n) + '</div>'; }).join('');
+    nh += '</div></div>';
+    if (allNums.length > 500) nh += '<div style="text-align:center;padding:10px;color:var(--sub)">+' + (allNums.length - 500).toLocaleString() + ' more</div>';
   } else if (tx.numbers && String(tx.numbers).trim()) {
     var nums = tx.numbers.split(',').map(function(n) { return n.trim(); }).filter(function(n) { return n; });
     allNums = nums.map(function(n) { return pad6(n); });
     nh = '<h3>🎰 Numbers (' + nums.length.toLocaleString() + ')</h3>';
     if (tx.status === 'DECLINED') nh += '<div style="font-size:.78rem;color:var(--err);margin-bottom:8px">⚠️ Numbers freed</div>';
-    var display = nums.slice(0, 500);
+    var display2 = allNums.slice(0, 500);
     nh += '<div class="nbox" style="max-height:300px"><div class="ngrid">' +
-      display.map(function(n) { return '<div class="ni" style="opacity:' + (tx.status === 'DECLINED' ? '.4' : '1') + '">' + pad6(n) + '</div>'; }).join('') + '</div></div>';
+      display2.map(function(n) { return '<div class="ni" style="opacity:' + (tx.status === 'DECLINED' ? '.4' : '1') + '">' + esc(n) + '</div>'; }).join('') + '</div></div>';
     if (nums.length > 500) nh += '<div style="text-align:center;padding:10px;color:var(--sub)">+' + (nums.length - 500).toLocaleString() + ' more</div>';
   } else { nh = '<h3>🎰 Numbers</h3><div style="color:var(--sub);padding:10px">No data.</div>'; }
 
   _detailTx._allNums = allNums;
   $('detailNums').innerHTML = nh;
 
+  var txE = esc(tx.transactionId);
   var ah = '';
   if (allNums.length > 0) ah += '<button class="btn-sm btn-blue" onclick="copyDetailNums()">📋 Copy</button><button class="btn-sm btn-green" onclick="downloadDetailTx()">⬇ Download</button>';
-  if (tx.status === 'PENDING') ah += '<button class="btn-sm btn-green" onclick="closeDetail();confirmApprove(\'' + esc(tx.transactionId) + '\')">✅ Approve</button><button class="btn-sm btn-red" onclick="closeDetail();confirmDecline(\'' + esc(tx.transactionId) + '\')">❌ Decline</button>';
+  if (tx.status === 'PENDING') ah += '<button class="btn-sm btn-green" onclick="closeDetail();confirmApprove(\'' + txE + '\')">✅ Approve</button><button class="btn-sm btn-red" onclick="closeDetail();confirmDecline(\'' + txE + '\')">❌ Decline</button>';
   ah += '<button class="btn-sm btn-blue" onclick="closeDetail()">Close</button>';
   $('detailActions').innerHTML = ah;
 }
 
 function copyDetailNums() {
-  if (!_detailTx || !_detailTx._allNums.length) return toast('No numbers', 'err');
-  navigator.clipboard.writeText(_detailTx._allNums.join('\n')).then(function() { toast('Copied ' + _detailTx._allNums.length.toLocaleString() + ' numbers!', 'suc'); }).catch(function() { toast('Failed', 'err'); });
+  if (!_detailTx || !_detailTx._allNums || !_detailTx._allNums.length) return toast('No numbers', 'err');
+  navigator.clipboard.writeText(_detailTx._allNums.join('\n'))
+    .then(function() { toast('Copied ' + _detailTx._allNums.length.toLocaleString() + ' numbers!', 'suc'); })
+    .catch(function() { toast('Failed', 'err'); });
 }
 
 function downloadDetailTx() {
@@ -1118,9 +1121,7 @@ function downloadDetailTx() {
   a.download = 'PisoPalaro-' + tx.transactionId + '.txt'; a.click(); toast('Downloaded!', 'suc');
 }
 
-
 // ── APPROVE / DECLINE / DELETE ───────────────────────────────
-
 function confirmApprove(tx) {
   $('confirmTitle').textContent = '✅ Approve?';
   $('confirmMsg').innerHTML = 'Approve <code>' + esc(tx) + '</code>?';
@@ -1132,7 +1133,7 @@ function doApprove(tx) {
   adminApi('adminApproveTransaction', { transactionId: tx }).then(function(d) {
     hideOv();
     if (d.success) { toast('✅ Approved!', 'suc'); refreshAfterAction(); }
-    else toast(d.error, 'err');
+    else toast(d.error || 'Failed', 'err');
   }).catch(function(e) { hideOv(); toast(e.message, 'err'); });
 }
 
@@ -1147,7 +1148,7 @@ function doDecline(tx) {
   adminApi('adminDeclineTransaction', { transactionId: tx }).then(function(d) {
     hideOv();
     if (d.success) { toast('❌ Declined. ' + (d.freedNumbers || 0) + ' numbers freed.', 'suc'); refreshAfterAction(); }
-    else toast(d.error, 'err');
+    else toast(d.error || 'Failed', 'err');
   }).catch(function(e) { hideOv(); toast(e.message, 'err'); });
 }
 
@@ -1162,7 +1163,7 @@ function doDelete(tx) {
   adminApi('adminDeleteTransaction', { transactionId: tx }).then(function(d) {
     hideOv();
     if (d.success) { toast('🗑️ Deleted. ' + (d.freedNumbers || 0) + ' numbers freed.', 'suc'); refreshAfterAction(); }
-    else toast(d.error, 'err');
+    else toast(d.error || 'Failed', 'err');
   }).catch(function(e) { hideOv(); toast(e.message, 'err'); });
 }
 
@@ -1177,7 +1178,7 @@ function doDeleteAll() {
   adminApi('adminDeleteAllTransactions').then(function(d) {
     hideOv();
     if (d.success) { toast('🗑️ All deleted!', 'suc'); refreshAfterAction(); }
-    else toast(d.error, 'err');
+    else toast(d.error || 'Failed', 'err');
   }).catch(function(e) { hideOv(); toast(e.message, 'err'); });
 }
 
@@ -1187,9 +1188,7 @@ function refreshAfterAction() {
   if (activeP === 'numbers') loadNumbers();
 }
 
-
 // ── SEARCH ───────────────────────────────────────────────────
-
 function searchNumber() {
   var q = $('searchNum').value.trim(); if (!q) return toast('Enter number.', 'err');
   q = pad6(q.replace(/\D/g, ''));
@@ -1202,7 +1201,7 @@ function searchNumber() {
       $('searchThead').innerHTML = '<tr><th>Number</th><th>TX</th><th>Name</th><th>Phone</th><th>GCash</th><th>Date</th><th>Time</th></tr>';
       $('searchTbody').innerHTML = d.results.map(function(r) { return '<tr class="clickable-row" onclick="openTxDetail(\'' + esc(r.transactionId) + '\')"><td class="mono">' + esc(r.number) + '</td><td>' + esc(r.transactionId) + '</td><td>' + esc(r.name) + '</td><td>' + esc(r.phone) + '</td><td>' + esc(r.gcashRef) + '</td><td>' + esc(r.date) + '</td><td>' + esc(r.time) + '</td></tr>'; }).join('');
     } else { $('searchThead').innerHTML = ''; $('searchTbody').innerHTML = '<tr><td class="tbl-empty">Not sold.</td></tr>'; }
-  }).catch(function(e) { $('sl1').classList.remove('on'); toast('Error', 'err'); });
+  }).catch(function(e) { $('sl1').classList.remove('on'); toast('Error: ' + e.message, 'err'); });
 }
 
 function searchBuyerFn() {
@@ -1215,7 +1214,7 @@ function searchBuyerFn() {
       $('searchThead').innerHTML = '<tr><th>Date</th><th>Time</th><th>TX</th><th>Name</th><th>Phone</th><th>Qty</th><th>Amt</th><th>Status</th></tr>';
       $('searchTbody').innerHTML = d.results.map(function(r) { return '<tr class="clickable-row" onclick="openTxDetail(\'' + esc(r.transactionId) + '\')"><td>' + esc(r.date) + '</td><td>' + esc(r.time) + '</td><td>' + esc(r.transactionId) + '</td><td>' + esc(r.name) + '</td><td>' + esc(r.phone) + '</td><td>' + Number(r.quantity).toLocaleString() + '</td><td>₱' + Number(r.amount).toLocaleString() + '</td><td><span class="badge ' + statusClass(r.status) + '">' + esc(r.status) + '</span></td></tr>'; }).join('');
     } else { $('searchThead').innerHTML = ''; $('searchTbody').innerHTML = '<tr><td class="tbl-empty">None.</td></tr>'; }
-  }).catch(function(e) { $('sl2').classList.remove('on'); toast('Error', 'err'); });
+  }).catch(function(e) { $('sl2').classList.remove('on'); toast('Error: ' + e.message, 'err'); });
 }
 
 function searchDuplicates() {
@@ -1240,9 +1239,7 @@ function searchDuplicates() {
   }).catch(function(e) { $('sl3').classList.remove('on'); $('dupeBtn').disabled = false; toast(e.message, 'err'); });
 }
 
-
 // ── TOOLS ────────────────────────────────────────────────────
-
 function addNumber() {
   var num = pad6($('addNum').value.trim().replace(/\D/g, ''));
   if (!num || !isValidNumber(num)) return toast('Invalid (1st digit 0 or 1).', 'err');
@@ -1250,7 +1247,7 @@ function addNumber() {
   adminApi('adminAddNumber', { number: num, name: $('addName').value.trim(), phone: $('addPhone').value.trim() }).then(function(d) {
     hideOv();
     if (d.success) { toast('✅ ' + d.message, 'suc'); $('addNum').value = ''; $('addName').value = ''; $('addPhone').value = ''; loadDashboard(); }
-    else toast(d.error, 'err');
+    else toast(d.error || 'Failed', 'err');
   }).catch(function(e) { hideOv(); toast(e.message, 'err'); });
 }
 
@@ -1261,13 +1258,11 @@ function removeNumber() {
   adminApi('adminRemoveNumber', { number: num }).then(function(d) {
     hideOv();
     if (d.success) { toast('✅ ' + d.message, 'suc'); $('removeNum').value = ''; loadDashboard(); }
-    else toast(d.error, 'err');
+    else toast(d.error || 'Failed', 'err');
   }).catch(function(e) { hideOv(); toast(e.message, 'err'); });
 }
 
-
 // ── SETTINGS ─────────────────────────────────────────────────
-
 function loadSettingsFn() {
   adminApi('adminInit').then(function(d) {
     if (d && d.success && d.settings) applySettingsToForm(d.settings);
@@ -1302,30 +1297,26 @@ function saveSettings() {
   adminApi('adminUpdateSettings', p).then(function(d) {
     hideOv();
     if (d.success) { toast('✅ Saved!', 'suc'); $('setNewPass').value = ''; $('setNewPass2').value = ''; if (np) { toast('Password changed. Logging out...', 'warn'); setTimeout(doLogout, 2000); } }
-    else toast(d.error, 'err');
-  }).catch(function(e) { hideOv(); toast('Error', 'err'); });
+    else toast(d.error || 'Failed', 'err');
+  }).catch(function(e) { hideOv(); toast('Error: ' + e.message, 'err'); });
 }
 
-
 // ── EXPORT ───────────────────────────────────────────────────
-
 function exportData(type) {
   showOv('Exporting...', '');
   adminApi('adminExportData', { type: type }).then(function(d) {
     hideOv();
-    if (!d.success) return toast(d.error, 'err');
+    if (!d.success) return toast(d.error || 'Failed', 'err');
     var csv = d.headers.join(',') + '\n';
     d.data.forEach(function(r) { csv += r.map(function(c) { return '"' + String(c).replace(/"/g, '""') + '"'; }).join(',') + '\n'; });
     var a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
     a.download = 'PisoPalaro-' + type + '-' + new Date().toISOString().slice(0, 10) + '.csv';
     a.click(); toast('Exported ' + (d.total || 0) + ' rows!', 'suc');
-  }).catch(function(e) { hideOv(); toast('Error', 'err'); });
+  }).catch(function(e) { hideOv(); toast('Error: ' + e.message, 'err'); });
 }
 
-
 // ── AUTO REFRESH ─────────────────────────────────────────────
-
 function startAutoRefresh() {
   if (_art) clearInterval(_art);
   _art = setInterval(function() {
@@ -1338,9 +1329,7 @@ function startAutoRefresh() {
   }, 15000);
 }
 
-
 // ── INIT ─────────────────────────────────────────────────────
-
 document.addEventListener('DOMContentLoaded', function() {
   detectMode();
 
