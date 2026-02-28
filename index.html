@@ -13,15 +13,12 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
 body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 30% -10%,rgba(255,215,0,.06),transparent 60%),radial-gradient(ellipse at 70% 110%,rgba(0,122,255,.04),transparent 55%);pointer-events:none}
 .w{max-width:860px;margin:0 auto;padding:14px;position:relative;z-index:1}
 header{text-align:center;padding:30px 0 8px}
-
-/* ── Logo styles ── */
 .logo-img-wrap{display:none;justify-content:center;align-items:center;margin-bottom:6px}
 .logo-img-wrap img{max-height:clamp(60px,15vw,120px);width:auto;object-fit:contain;filter:drop-shadow(0 4px 24px rgba(255,215,0,.18))}
 .logo-img-wrap.on{display:flex}
 .logo{font-size:clamp(2rem,7vw,3.3rem);font-weight:900;background:linear-gradient(135deg,var(--goldd),var(--gold),#fff8c4,var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:4px}
 .logo span{display:block;font-size:.38em;letter-spacing:12px;font-weight:300;-webkit-text-fill-color:var(--sub)}
 .logo.hidden{display:none}
-
 .tag{color:var(--sub);font-size:.85rem;margin-top:4px;letter-spacing:1px}
 .pill{display:inline-block;margin-top:12px;padding:7px 24px;background:linear-gradient(135deg,var(--goldd),var(--gold));color:#000;border-radius:50px;font-weight:800;font-size:.95rem}
 .range{margin-top:6px;color:var(--sub);font-size:.75rem;font-family:'JetBrains Mono',monospace;letter-spacing:2px}
@@ -291,7 +288,7 @@ tr:hover td{background:rgba(255,215,0,.02)}
   .page-sub{font-size:.75rem;margin-bottom:16px}
 }
 @media(min-width:769px){.mob-nav{display:none!important}}
-  .sold-out-banner{background:linear-gradient(135deg,rgba(255,59,59,.1),rgba(255,59,59,.03));border:1px solid rgba(255,59,59,.2);border-radius:var(--r);padding:14px 18px;margin:14px 0;text-align:center;display:none;line-height:1.7;font-size:.92rem;color:var(--err);font-weight:700}
+.sold-out-banner{background:linear-gradient(135deg,rgba(255,59,59,.1),rgba(255,59,59,.03));border:1px solid rgba(255,59,59,.2);border-radius:var(--r);padding:14px 18px;margin:14px 0;text-align:center;display:none;line-height:1.7;font-size:.92rem;color:var(--err);font-weight:700}
 .sold-out-banner.on{display:block}
 .btn.sold-out{background:rgba(255,255,255,.08)!important;color:var(--sub)!important;box-shadow:none!important;cursor:not-allowed!important;pointer-events:none}
 .qp-btn.sold-out{opacity:.3;pointer-events:none;cursor:not-allowed}
@@ -311,11 +308,9 @@ tr:hover td{background:rgba(255,215,0,.02)}
 <div id="publicPage">
 <div class="w">
 <header>
-  <!-- Logo image (shown when logo.png exists) -->
   <div class="logo-img-wrap" id="logoImgWrap">
     <img id="logoImg" src="logo.png" alt="Logo">
   </div>
-  <!-- Text fallback (shown when logo.png fails to load) -->
   <div class="logo" id="logoText">🎰 PISO<span>PALARO</span></div>
   <p class="tag" id="tagLine">Get your lucky numbers — only ₱1 each!</p>
   <div class="pill" id="priceTag">₱1.00 PER ENTRY</div>
@@ -813,7 +808,6 @@ function updateProgress(sold, rem) {
     $('priceTag').style.background = 'linear-gradient(135deg, #ff3b3b, #ff6b6b)';
     $('priceTag').style.color = '#fff';
   } else if (soldPct >= 80) {
-    /* 80%+ sold — show remaining count */
     if (pct > 10) {
       t.textContent = 'Running low (' + rem.toLocaleString() + ')';
       t.classList.add('low'); f.classList.add('low');
@@ -822,7 +816,6 @@ function updateProgress(sold, rem) {
       t.classList.add('low'); f.classList.add('low');
     }
   } else if (pct > 60) {
-    /* Less than 80% sold — hide count */
     t.textContent = 'Plenty available';
     t.classList.add('high');
     $('priceTag').style.background = '';
@@ -831,7 +824,6 @@ function updateProgress(sold, rem) {
     t.textContent = 'Selling fast';
     t.classList.add('mid'); f.classList.add('mid');
   } else {
-    /* pct <= 30 but soldPct < 80 — edge case, still hide count */
     t.textContent = 'Running low';
     t.classList.add('low'); f.classList.add('low');
   }
@@ -967,12 +959,11 @@ function doAttemptPurchase(nm, ph, qt, ref, tryN) {
     });
 }
 
-/* ── Updated censor functions ── */
 function censorName(n) {
   var words = n.trim().split(/\s+/);
   return words.map(function(w, i) {
-    if (i === 0) return w; /* First name shown in full */
-    return w.charAt(0) + new Array(w.length).join('*'); /* First letter + asterisks for rest */
+    if (i === 0) return w;
+    return w.charAt(0) + new Array(w.length).join('*');
   }).join(' ');
 }
 
@@ -1170,8 +1161,18 @@ function renderDashboard(d) {
 function buildTxActions(status, txId) {
   var safe = escAttr(txId);
   var a = '<div class="tx-actions">';
-  if (status === 'PENDING') a += '<button class="btn-sm btn-green" onclick="event.stopPropagation();confirmApprove(\'' + safe + '\')">✓</button><button class="btn-sm btn-red" onclick="event.stopPropagation();confirmDecline(\'' + safe + '\')">✗</button>';
-  a += '<button class="btn-sm btn-orange" onclick="event.stopPropagation();confirmDelete(\'' + safe + '\')">🗑</button></div>';
+  if (status === 'PENDING') {
+    // PENDING: approve + decline only, NO delete
+    a += '<button class="btn-sm btn-green" onclick="event.stopPropagation();confirmApprove(\'' + safe + '\')">✓</button>';
+    a += '<button class="btn-sm btn-red" onclick="event.stopPropagation();confirmDecline(\'' + safe + '\')">✗</button>';
+  } else if (status === 'APPROVED') {
+    // APPROVED: delete with special confirmation (frees numbers)
+    a += '<button class="btn-sm btn-orange" onclick="event.stopPropagation();confirmDeleteApproved(\'' + safe + '\')">🗑</button>';
+  } else {
+    // DECLINED: simple delete
+    a += '<button class="btn-sm btn-orange" onclick="event.stopPropagation();confirmDelete(\'' + safe + '\')">🗑</button>';
+  }
+  a += '</div>';
   return a;
 }
 
@@ -1309,11 +1310,26 @@ function renderTxDetail(d) {
 
   var txE = escAttr(tx.transactionId);
   var ah = '';
-  if (allNums.length > 0) ah += '<button class="btn-sm btn-blue" onclick="copyDetailNums()">📋 Copy</button><button class="btn-sm btn-green" onclick="downloadDetailTx()">⬇ Download</button>';
-  if (tx.status === 'PENDING') ah += '<button class="btn-sm btn-green" onclick="closeDetail();confirmApprove(\'' + txE + '\')">✅ Approve</button><button class="btn-sm btn-red" onclick="closeDetail();confirmDecline(\'' + txE + '\')">❌ Decline</button>';
-  if (!tx.numbersStillInRegistry) {
+
+  // Copy & Download buttons if numbers exist
+  if (allNums.length > 0) {
+    ah += '<button class="btn-sm btn-blue" onclick="copyDetailNums()">📋 Copy</button>';
+    ah += '<button class="btn-sm btn-green" onclick="downloadDetailTx()">⬇ Download</button>';
+  }
+
+  // Action buttons based on status
+  if (tx.status === 'PENDING') {
+    // PENDING: approve + decline only, NO delete
+    ah += '<button class="btn-sm btn-green" onclick="closeDetail();confirmApprove(\'' + txE + '\')">✅ Approve</button>';
+    ah += '<button class="btn-sm btn-red" onclick="closeDetail();confirmDecline(\'' + txE + '\')">❌ Decline</button>';
+  } else if (tx.status === 'APPROVED') {
+    // APPROVED: delete with special confirmation
+    ah += '<button class="btn-sm btn-orange" onclick="closeDetail();confirmDeleteApproved(\'' + txE + '\')">🗑 Delete</button>';
+  } else {
+    // DECLINED: simple delete
     ah += '<button class="btn-sm btn-orange" onclick="closeDetail();confirmDelete(\'' + txE + '\')">🗑 Delete</button>';
   }
+
   ah += '<button class="btn-sm btn-blue" onclick="closeDetail()">Close</button>';
   $('detailActions').innerHTML = ah;
 }
@@ -1371,18 +1387,63 @@ function doDecline(tx) {
 }
 
 function confirmDelete(tx) {
-  $('confirmTitle').textContent = '🗑️ Delete?';
-  $('confirmMsg').innerHTML = 'Delete <code>' + esc(tx) + '</code>?<br><strong>This removes the transaction record. Cannot undo!</strong><br><br><span style="font-size:.8rem;color:var(--sub)">Note: Numbers must be freed first (decline the transaction) before it can be deleted.</span>';
-  $('confirmYes').textContent = 'Delete'; $('confirmYes').className = 'btn-sm btn-orange';
-  $('confirmYes').onclick = function() { doDelete(tx); }; $('confirmModal').classList.add('on');
+  $('confirmTitle').textContent = '🗑️ Delete Transaction?';
+  $('confirmMsg').innerHTML = 'Delete <code>' + esc(tx) + '</code>?<br><strong>This removes the transaction record permanently.</strong>';
+  $('confirmYes').textContent = 'Delete';
+  $('confirmYes').className = 'btn-sm btn-orange';
+  $('confirmYes').onclick = function() { doDelete(tx); };
+  $('confirmModal').classList.add('on');
 }
+
+function confirmDeleteApproved(tx) {
+  $('confirmTitle').textContent = '⚠️ Delete APPROVED Transaction?';
+  $('confirmMsg').innerHTML = 'Delete <code>' + esc(tx) + '</code>?<br><br>' +
+    '<strong style="color:var(--err)">⚠️ This transaction is APPROVED.</strong><br>' +
+    'Deleting it will:<br>' +
+    '• Remove all its numbers from the sold registry<br>' +
+    '• Permanently delete the transaction record<br><br>' +
+    '<strong style="color:var(--err)">This cannot be undone!</strong>';
+  $('confirmYes').textContent = 'Delete & Free Numbers';
+  $('confirmYes').className = 'btn-sm btn-red';
+  $('confirmYes').onclick = function() { doDeleteApproved(tx); };
+  $('confirmModal').classList.add('on');
+}
+
+function doDeleteApproved(tx) {
+  closeConfirm();
+  showOv('Deleting approved transaction & freeing numbers...', 'This may take a moment');
+  adminApi('adminDeleteTransaction', { transactionId: tx, confirm: 'DELETE_APPROVED' }).then(function(d) {
+    hideOv();
+    if (d.success) {
+      toast('🗑️ ' + d.message, 'suc');
+      refreshAfterAction();
+    } else {
+      toast(d.error || 'Failed', 'err');
+    }
+  }).catch(function(e) {
+    hideOv();
+    if (e.message !== 'AUTH_FAILED') toast(e.message, 'err');
+  });
+}
+
 function doDelete(tx) {
-  closeConfirm(); showOv('Deleting...', '');
+  closeConfirm();
+  showOv('Deleting...', '');
   adminApi('adminDeleteTransaction', { transactionId: tx }).then(function(d) {
     hideOv();
-    if (d.success) { toast('🗑️ Deleted!', 'suc'); refreshAfterAction(); }
-    else toast(d.error || 'Failed', 'err');
-  }).catch(function(e) { hideOv(); if (e.message !== 'AUTH_FAILED') toast(e.message, 'err'); });
+    if (d.success) {
+      toast('🗑️ ' + (d.message || 'Deleted!'), 'suc');
+      refreshAfterAction();
+    } else if (d.error === 'CONFIRM_REQUIRED' && d.confirmType === 'DELETE_APPROVED') {
+      // Server says this is approved — show the special confirmation
+      confirmDeleteApproved(tx);
+    } else {
+      toast(d.error || 'Failed', 'err');
+    }
+  }).catch(function(e) {
+    hideOv();
+    if (e.message !== 'AUTH_FAILED') toast(e.message, 'err');
+  });
 }
 
 function confirmDeleteAll() {
