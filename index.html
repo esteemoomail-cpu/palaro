@@ -13,18 +13,14 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
 body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 30% -10%,rgba(255,215,0,.06),transparent 60%),radial-gradient(ellipse at 70% 110%,rgba(0,122,255,.04),transparent 55%);pointer-events:none}
 .w{max-width:860px;margin:0 auto;padding:14px;position:relative;z-index:1}
 header{text-align:center;padding:30px 0 8px}
-
-/* ── Logo styles ── */
 .logo-img-wrap{display:none;justify-content:center;align-items:center;margin-bottom:6px}
 .logo-img-wrap img{max-height:clamp(60px,15vw,120px);width:auto;object-fit:contain;filter:drop-shadow(0 4px 24px rgba(255,215,0,.18))}
 .logo-img-wrap.on{display:flex}
 .logo{font-size:clamp(2rem,7vw,3.3rem);font-weight:900;background:linear-gradient(135deg,var(--goldd),var(--gold),#fff8c4,var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:4px}
 .logo span{display:block;font-size:.38em;letter-spacing:12px;font-weight:300;-webkit-text-fill-color:var(--sub)}
 .logo.hidden{display:none}
-
 .tag{color:var(--sub);font-size:.85rem;margin-top:4px;letter-spacing:1px}
 .pill{display:inline-block;margin-top:12px;padding:7px 24px;background:linear-gradient(135deg,var(--goldd),var(--gold));color:#000;border-radius:50px;font-weight:800;font-size:.95rem}
-.range{margin-top:6px;color:var(--sub);font-size:.75rem;font-family:'JetBrains Mono',monospace;letter-spacing:2px}
 .draw-banner{background:linear-gradient(135deg,rgba(255,215,0,.1),rgba(255,215,0,.03));border:1px solid rgba(255,215,0,.15);border-radius:var(--r);padding:12px 18px;margin:14px 0;text-align:center;display:none}
 .draw-banner .db-label{font-size:.65rem;color:var(--sub);text-transform:uppercase;letter-spacing:2px;margin-bottom:2px}
 .draw-banner .db-date{font-size:1.1rem;font-weight:800;color:var(--gold);font-family:'JetBrains Mono',monospace}
@@ -43,7 +39,10 @@ header{text-align:center;padding:30px 0 8px}
 .avail-label{font-size:.65rem;color:var(--sub);text-transform:uppercase;letter-spacing:2px;text-align:right}
 .avail-status{font-size:.82rem;font-weight:600;margin-top:2px;text-align:right}
 .avail-status.high{color:var(--ok)}.avail-status.mid{color:var(--warn)}.avail-status.low{color:var(--err)}
-.progress-wrap{position:relative}
+.avail-wrap{display:none}
+.avail-wrap.on{display:block}
+.progress-wrap{position:relative;display:none}
+.progress-wrap.on{display:block}
 .progress-track{width:100%;height:14px;background:rgba(255,255,255,.06);border-radius:10px;overflow:hidden;border:1px solid rgba(255,255,255,.05)}
 .progress-fill{height:100%;border-radius:10px;background:linear-gradient(90deg,var(--ok),#69f0ae);transition:width 1.5s;position:relative}
 .progress-fill.mid{background:linear-gradient(90deg,var(--warn),#ffcc02)}
@@ -121,7 +120,6 @@ header{text-align:center;padding:30px 0 8px}
 .err-panel{background:linear-gradient(135deg,rgba(255,59,59,.1),rgba(255,59,59,.03));border:1px solid rgba(255,59,59,.2);border-radius:var(--r);padding:18px;margin:14px 0;line-height:1.8;font-size:.85rem}
 .err-panel h3{color:var(--err);margin-bottom:8px}
 .err-panel .retry-btn{display:inline-block;margin-top:10px;padding:8px 20px;background:var(--err);color:#fff;border:none;border-radius:8px;font-weight:700;cursor:pointer;font-family:inherit}
-footer{text-align:center;padding:24px 0;color:var(--sub);font-size:.68rem;line-height:2}
 .pending-notice{background:linear-gradient(135deg,rgba(255,171,0,.1),rgba(255,171,0,.03));border:1px solid rgba(255,171,0,.2);border-radius:var(--r);padding:14px 18px;margin:12px 0;line-height:1.7;font-size:.85rem;color:var(--pend)}
 .ref-row{margin:6px 0;padding:10px 0}
 .ref-label{font-size:.68rem;color:var(--sub);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:5px}
@@ -143,7 +141,6 @@ footer{text-align:center;padding:24px 0;color:var(--sub);font-size:.68rem;line-h
 .search-loading{display:none;align-items:center;gap:8px;color:var(--sub);font-size:.8rem;padding:8px 0}
 .search-loading.on{display:flex}
 .search-loading .sp-sm{width:16px;height:16px;border:2px solid rgba(255,215,0,.15);border-top-color:var(--gold);border-radius:50%;animation:spin .6s linear infinite}
-.pool-info{font-size:.72rem;color:var(--sub);text-align:center;margin-top:4px;font-family:'JetBrains Mono',monospace;letter-spacing:1px}
 .login-wrap{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px}
 .login-box{background:var(--card);border:1px solid var(--bdr);border-radius:20px;padding:40px 32px;width:100%;max-width:420px;backdrop-filter:blur(10px);text-align:center}
 .login-box h1{font-size:1.6rem;margin-bottom:4px;background:linear-gradient(135deg,var(--goldd),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
@@ -291,7 +288,7 @@ tr:hover td{background:rgba(255,215,0,.02)}
   .page-sub{font-size:.75rem;margin-bottom:16px}
 }
 @media(min-width:769px){.mob-nav{display:none!important}}
-  .sold-out-banner{background:linear-gradient(135deg,rgba(255,59,59,.1),rgba(255,59,59,.03));border:1px solid rgba(255,59,59,.2);border-radius:var(--r);padding:14px 18px;margin:14px 0;text-align:center;display:none;line-height:1.7;font-size:.92rem;color:var(--err);font-weight:700}
+.sold-out-banner{background:linear-gradient(135deg,rgba(255,59,59,.1),rgba(255,59,59,.03));border:1px solid rgba(255,59,59,.2);border-radius:var(--r);padding:14px 18px;margin:14px 0;text-align:center;display:none;line-height:1.7;font-size:.92rem;color:var(--err);font-weight:700}
 .sold-out-banner.on{display:block}
 .btn.sold-out{background:rgba(255,255,255,.08)!important;color:var(--sub)!important;box-shadow:none!important;cursor:not-allowed!important;pointer-events:none}
 .qp-btn.sold-out{opacity:.3;pointer-events:none;cursor:not-allowed}
@@ -311,15 +308,12 @@ tr:hover td{background:rgba(255,215,0,.02)}
 <div id="publicPage">
 <div class="w">
 <header>
-  <!-- Logo image (shown when logo.png exists) -->
   <div class="logo-img-wrap" id="logoImgWrap">
     <img id="logoImg" src="logo.png" alt="Logo">
   </div>
-  <!-- Text fallback (shown when logo.png fails to load) -->
   <div class="logo" id="logoText">🎰 PISO<span>PALARO</span></div>
   <p class="tag" id="tagLine">Get your lucky numbers — only ₱1 each!</p>
   <div class="pill" id="priceTag">₱1.00 PER ENTRY</div>
-  <div class="pool-info">Pool: 000000 – 199999 (200,000 numbers)</div>
 </header>
 <div class="draw-banner" id="drawBanner"><div class="db-label">🎯 Draw Date</div><div class="db-date" id="drawDateText"></div></div>
 <div class="announce-banner" id="announceBanner"><span style="font-size:1.2rem;margin-right:6px">📢</span><span id="announceText"></span></div>
@@ -329,9 +323,12 @@ tr:hover td{background:rgba(255,215,0,.02)}
 <div class="info-bar">
   <div class="info-top">
     <div class="date-box"><div class="date-icon">📅</div><div><div class="date-label">Today</div><div class="date-value" id="dateToday">—</div></div></div>
-    <div><div class="avail-label">Availability</div><div class="avail-status high" id="availTxt">Loading...</div></div>
+    <div class="avail-wrap" id="availWrap">
+      <div class="avail-label">Availability</div>
+      <div class="avail-status high" id="availTxt">Loading...</div>
+    </div>
   </div>
-  <div class="progress-wrap"><div class="progress-track"><div class="progress-fill" id="progressFill" style="width:100%"></div></div><div class="progress-dots"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div></div>
+  <div class="progress-wrap" id="progressWrap"><div class="progress-track"><div class="progress-fill" id="progressFill" style="width:100%"></div></div><div class="progress-dots"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div></div>
 </div>
 
 <div id="secB">
@@ -417,7 +414,6 @@ tr:hover td{background:rgba(255,215,0,.02)}
 </div>
 </div>
 
-<footer>© 2024 Piso Palaro &bull; GCash only &bull; Numbers: 000000–199999</footer>
 </div>
 </div>
 
@@ -560,6 +556,7 @@ const MAX_RETRY = 3;
 const RETRY_MS = [3000, 5000, 8000];
 const FETCH_TIMEOUT = 120000;
 const MAX_NAME_LEN = 40;
+const AVAIL_SHOW_THRESHOLD = 90; /* Show availability only when >=90% sold */
 
 let GCASH_NUMBER = '09171234567';
 let GCASH_NAME = 'Juan Dela Cruz';
@@ -570,7 +567,7 @@ let _detailTx = null;
 let _art = null, _kat = null, activeP = 'dashboard';
 let _purchaseInProgress = false;
 let isSoldOut = false;
-let logoLoaded = false; /* Track whether logo.png loaded successfully */
+let logoLoaded = false;
 
 function $(id) { return document.getElementById(id); }
 function show(id) { $(id).classList.remove('hide'); }
@@ -648,29 +645,23 @@ function detectMode() {
   }
 }
 
-/* ═══════════════════════════════════════════════════════════
-   LOGO DETECTION — Try loading logo.png, fallback to text
-   ═══════════════════════════════════════════════════════════ */
 function initLogo() {
   var img = $('logoImg');
   var imgWrap = $('logoImgWrap');
   var textLogo = $('logoText');
 
   img.onload = function() {
-    /* logo.png loaded successfully — show image, hide text */
     logoLoaded = true;
     imgWrap.classList.add('on');
     textLogo.classList.add('hidden');
   };
 
   img.onerror = function() {
-    /* logo.png not found or failed — show text, hide image */
     logoLoaded = false;
     imgWrap.classList.remove('on');
     textLogo.classList.remove('hidden');
   };
 
-  /* Force re-check if already cached/loaded */
   if (img.complete) {
     if (img.naturalWidth > 0) {
       img.onload();
@@ -768,8 +759,6 @@ function applyPublicSettings(s) {
   if (s.lottery_name) {
     LOTTERY_NAME = String(s.lottery_name).substring(0, 60);
     document.title = LOTTERY_NAME;
-
-    /* Only update text logo if logo.png did NOT load */
     if (!logoLoaded) {
       var p = LOTTERY_NAME.split(' '), logo = $('logoText');
       logo.textContent = '';
@@ -804,35 +793,50 @@ function applyPublicSettings(s) {
 }
 
 function updateProgress(sold, rem) {
-  var pct = Math.max(0, Math.min(100, (rem / TOTAL_POOL) * 100));
+  var percentSold = TOTAL_POOL > 0 ? (sold / TOTAL_POOL) * 100 : 0;
+  var pctRemaining = Math.max(0, Math.min(100, (rem / TOTAL_POOL) * 100));
   var f = $('progressFill'), t = $('availTxt');
-  f.style.width = pct + '%';
+  var availWrap = $('availWrap'), progressWrap = $('progressWrap');
+
+  f.style.width = pctRemaining + '%';
   f.classList.remove('mid', 'low'); t.classList.remove('high', 'mid', 'low');
 
   applySoldOutState(sold, rem);
 
-  if (isSoldOut) {
-    t.textContent = '🚫 SOLD OUT (0 remaining)';
-    t.classList.add('low');
-    f.classList.add('low');
-    f.style.width = '0%';
-    $('priceTag').textContent = '🚫 SOLD OUT';
-    $('priceTag').style.background = 'linear-gradient(135deg, #ff3b3b, #ff6b6b)';
-    $('priceTag').style.color = '#fff';
-  } else if (pct > 60) {
-    t.textContent = 'Plenty available (' + rem.toLocaleString() + ')';
-    t.classList.add('high');
+  /* Only show availability + progress bar when >=90% sold */
+  if (percentSold >= AVAIL_SHOW_THRESHOLD || isSoldOut) {
+    availWrap.classList.add('on');
+    progressWrap.classList.add('on');
+
+    if (isSoldOut) {
+      t.textContent = '🚫 SOLD OUT (0 remaining)';
+      t.classList.add('low');
+      f.classList.add('low');
+      f.style.width = '0%';
+      $('priceTag').textContent = '🚫 SOLD OUT';
+      $('priceTag').style.background = 'linear-gradient(135deg, #ff3b3b, #ff6b6b)';
+      $('priceTag').style.color = '#fff';
+    } else if (pctRemaining > 60) {
+      t.textContent = 'Plenty available (' + rem.toLocaleString() + ')';
+      t.classList.add('high');
+      $('priceTag').style.background = '';
+      $('priceTag').style.color = '';
+    } else if (pctRemaining > 30) {
+      t.textContent = 'Selling fast (' + rem.toLocaleString() + ')';
+      t.classList.add('mid'); f.classList.add('mid');
+    } else if (pctRemaining > 5) {
+      t.textContent = 'Running low (' + rem.toLocaleString() + ')';
+      t.classList.add('low'); f.classList.add('low');
+    } else {
+      t.textContent = 'Almost sold out! (' + rem.toLocaleString() + ')';
+      t.classList.add('low'); f.classList.add('low');
+    }
+  } else {
+    /* Less than 90% sold — hide availability & progress */
+    availWrap.classList.remove('on');
+    progressWrap.classList.remove('on');
     $('priceTag').style.background = '';
     $('priceTag').style.color = '';
-  } else if (pct > 30) {
-    t.textContent = 'Selling fast (' + rem.toLocaleString() + ')';
-    t.classList.add('mid'); f.classList.add('mid');
-  } else if (pct > 10) {
-    t.textContent = 'Running low (' + rem.toLocaleString() + ')';
-    t.classList.add('low'); f.classList.add('low');
-  } else {
-    t.textContent = pct > 0 ? 'Almost sold out! (' + rem.toLocaleString() + ')' : '🚫 SOLD OUT';
-    t.classList.add('low'); f.classList.add('low');
   }
 }
 
@@ -1531,11 +1535,8 @@ function startAutoRefresh() {
   }, 15000);
 }
 
-// ── INIT ─────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', function() {
   detectMode();
-
-  /* Initialize logo detection */
   initLogo();
 
   if (IS_ADMIN_MODE) {
