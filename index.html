@@ -46,6 +46,8 @@ header{text-align:center;padding:30px 0 8px}
 .maint-overlay .mi{font-size:4rem;margin-bottom:16px}
 .maint-overlay h2{color:var(--gold);font-size:1.5rem;margin-bottom:8px}
 .maint-overlay p{color:var(--sub);font-size:.92rem;max-width:400px;line-height:1.8}
+.overlay-close{margin-top:24px;padding:10px 28px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);color:var(--txt);border-radius:10px;font-size:.85rem;font-weight:700;cursor:pointer;font-family:inherit;transition:.2s;text-transform:uppercase;letter-spacing:1px}
+.overlay-close:hover{background:rgba(255,255,255,.15);border-color:rgba(255,255,255,.25)}
 
 /* ── Info bar ── */
 .info-bar{background:var(--card);border:1px solid var(--bdr);border-radius:16px;padding:20px 24px;backdrop-filter:blur(10px);margin:22px 0}
@@ -174,6 +176,10 @@ header{text-align:center;padding:30px 0 8px}
 .search-loading.on{display:flex}
 .search-loading .sp-sm{width:16px;height:16px;border:2px solid rgba(255,215,0,.15);border-top-color:var(--gold);border-radius:50%;animation:spin .6s linear infinite}
 
+/* ── Duplicate GCash warning ── */
+.gcash-dupe-warn{background:linear-gradient(135deg,rgba(255,59,59,.1),rgba(255,59,59,.03));border:1px solid rgba(255,59,59,.25);border-radius:var(--r);padding:14px 18px;margin:12px 0;font-size:.85rem;color:var(--err);line-height:1.7;display:none}
+.gcash-dupe-warn.on{display:block}
+
 /* ── Admin login ── */
 .login-wrap{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px}
 .login-box{background:var(--card);border:1px solid var(--bdr);border-radius:20px;padding:40px 32px;width:100%;max-width:420px;backdrop-filter:blur(10px);text-align:center}
@@ -272,6 +278,9 @@ tr:hover td{background:rgba(255,215,0,.02)}
 .detail-nums h3{font-size:.9rem;margin-bottom:8px;display:flex;align-items:center;gap:6px}
 .detail-actions{display:flex;gap:8px;margin-top:18px;padding-top:18px;border-top:1px dashed var(--bdr);flex-wrap:wrap;justify-content:center}
 
+/* ── Footer ── */
+footer{text-align:center;padding:24px 0 16px;color:var(--sub);font-size:.72rem;letter-spacing:1px;opacity:.6}
+
 /* ── Scrollbar ── */
 ::-webkit-scrollbar{width:6px}
 ::-webkit-scrollbar-track{background:rgba(255,255,255,.02)}
@@ -351,7 +360,12 @@ tr:hover td{background:rgba(255,215,0,.02)}
 </div>
 
 <div class="maint-overlay" id="maintOverlay"><div class="mi">🔧</div><h2>Under Maintenance</h2><p>Purchases temporarily paused.</p></div>
-<div class="maint-overlay" id="soldOutOverlay"><div class="mi">🎉</div><h2>SOLD OUT!</h2><p>All numbers have been sold.<br>Thank you for your support!<br><br><strong style="color:var(--gold)">Stay tuned for the draw date announcement.</strong></p></div>
+<div class="maint-overlay" id="soldOutOverlay">
+  <div class="mi">🎉</div>
+  <h2>SOLD OUT!</h2>
+  <p>All numbers have been sold.<br>Thank you for your support!<br><br><strong style="color:var(--gold)">Stay tuned for the draw date announcement.</strong></p>
+  <button class="overlay-close" onclick="closeSoldOutOverlay()">✕ Close</button>
+</div>
 
 <!-- PUBLIC PAGE -->
 <div id="publicPage">
@@ -432,7 +446,12 @@ tr:hover td{background:rgba(255,215,0,.02)}
               <div style="margin-top:6px;color:var(--warn)">📸 <strong>Take a screenshot of your GCash payment as backup proof.</strong></div>
             </div>
           </div>
-          <div class="fg"><label>GCash Reference # <span style="font-weight:400;text-transform:none;color:var(--sub)">(digits only, max 13)</span></label><input id="fR" placeholder="Enter ref from receipt" autocomplete="off" maxlength="13" inputmode="numeric"></div>
+          <div class="fg">
+            <label>GCash Reference # <span style="font-weight:400;text-transform:none;color:var(--sub)">(digits only, max 13)</span></label>
+            <input id="fR" placeholder="Enter ref from receipt" autocomplete="off" maxlength="13" inputmode="numeric">
+            <div class="field-err" id="gcashRefErr"></div>
+          </div>
+          <div class="gcash-dupe-warn" id="gcashDupeWarn">⚠️ <strong>This GCash Reference Number may have already been used.</strong> Please double-check your reference number before submitting.</div>
           <button class="btn b1" id="buyBtn" onclick="submitPurchase()">✓ Confirm Entry</button>
           <button class="btn b2" onclick="go1()">← Back</button>
         </div>
@@ -693,6 +712,7 @@ const showOv=(t,s)=>{$('ovT').textContent=t||'';$('ovS').textContent=s||'';$('ov
 const hideOv=()=>$('ov').classList.remove('on');
 const closeConfirm=()=>$('confirmModal').classList.remove('on');
 const closeDetail=()=>{$('detailModal').classList.remove('on');_detailTx=null;};
+const closeSoldOutOverlay=()=>$('soldOutOverlay').classList.remove('on');
 const goToPublicPage=()=>window.open(location.href.split('?')[0],'_blank');
 
 function cpText(text){
@@ -856,6 +876,39 @@ function updatePhoneStatus(){
   if(!valid)errEl.textContent=d.length<11?'Need 11 digits ('+d.length+'/11)':(d.startsWith('09')?'Invalid':'Must start with 09');
 }
 
+/* ── FIX: GCash Ref validation & inline error ── */
+function updateGcashRefStatus(){
+  const r=$('fR').value.trim(),d=getDigitsOnly(r);
+  const errEl=$('gcashRefErr'),inp=$('fR'),warn=$('gcashDupeWarn');
+  if(!r){errEl.style.display='none';inp.style.borderColor='rgba(255,255,255,.1)';warn.classList.remove('on');return;}
+  if(!/^\d+$/.test(r)){
+    errEl.textContent='Digits only';errEl.style.display='block';
+    inp.style.borderColor='var(--err)';warn.classList.remove('on');return;
+  }
+  if(d.length>13){
+    errEl.textContent='Max 13 digits';errEl.style.display='block';
+    inp.style.borderColor='var(--err)';warn.classList.remove('on');return;
+  }
+  errEl.style.display='none';inp.style.borderColor='rgba(255,255,255,.1)';
+  // Client-side duplicate warning (non-blocking, just a warning)
+  if(d.length>=4){
+    clearTimeout(inp._dupeTimer);
+    inp._dupeTimer=setTimeout(()=>{
+      if(!serverOnline)return;
+      safeFetch(SCRIPT_URL+'?action=stats&_t='+Date.now(),10000).catch(()=>{});
+      // Quick search via buyer search to check for the ref
+      const params=new URLSearchParams({action:'adminSearchBuyer',query:d,token:TOKEN||'_'});
+      safeFetch(SCRIPT_URL+'?'+params,15000).then(res=>{
+        if(res?.success&&res.total>0){
+          // Check if any result has this exact gcash ref
+          const found=res.results.some(r=>String(r.gcashRef).trim()===d);
+          if(found){warn.classList.add('on');}else{warn.classList.remove('on');}
+        } else {warn.classList.remove('on');}
+      }).catch(()=>{warn.classList.remove('on');});
+    },800);
+  } else {warn.classList.remove('on');}
+}
+
 function addQty(n,el){
   if(isSoldOut)return toast('🚫 Sold out!','err');
   const cur=parseInt($('fQ').value)||0,next=Math.min(cur+n,MAX_QTY);
@@ -893,7 +946,7 @@ function go2(){
   $('dA').textContent=' ₱ '+(qt*PRICE_PER).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
   stpSet(2);
 }
-function go1(){hide('p2');show('p1');stpSet(1);}
+function go1(){hide('p2');show('p1');stpSet(1);$('gcashDupeWarn').classList.remove('on');}
 
 function submitPurchase(){
   if(_purchaseInProgress)return toast('Already processing...','warn');
@@ -933,6 +986,11 @@ function doAttemptPurchase(nm,ph,qt,ref,tryN){
         hideOv();$('buyBtn').disabled=false;_purchaseInProgress=false;
         toast(d.error||'Failed.','err');
         if(d.error&&(d.error.includes('0 numbers left')||d.error.includes('Only 0')))updateProgress(TOTAL_POOL,0);
+        // Show inline duplicate GCash error prominently
+        if(d.error&&d.error.toLowerCase().includes('gcash reference')){
+          $('gcashDupeWarn').classList.add('on');
+          $('gcashDupeWarn').innerHTML='⚠️ <strong>'+esc(d.error)+'</strong>';
+        }
         if(!d.retryable)checkConnection();
       }
     })
@@ -983,6 +1041,9 @@ function again(){
   $('dT').textContent='₱ 0.00';
   $('phoneErr').style.display=$('phoneOk').style.display='none';
   $('fP').style.borderColor='rgba(255,255,255,.1)';
+  $('gcashRefErr').style.display='none';
+  $('fR').style.borderColor='rgba(255,255,255,.1)';
+  $('gcashDupeWarn').classList.remove('on');
   hide('p2');show('p1');stpSet(1);
   myNums=[];_purchaseInProgress=false;
   scrollTo({top:0,behavior:'smooth'});checkConnection();
@@ -1197,7 +1258,6 @@ function downloadDetailTx(){
   a.download='PisoPalaro-'+tx.transactionId+'.txt';a.click();toast('Downloaded!','suc');
 }
 
-// Generic confirm helper — replaces 4 separate confirm functions
 function showConfirm(title,msg,btnTxt,btnCls,fn){
   $('confirmTitle').textContent=title;
   $('confirmMsg').innerHTML=msg;
@@ -1211,7 +1271,6 @@ const confirmDelete=tx=>showConfirm('🗑️ Delete Transaction?',`Delete <code>
 const confirmDeleteApproved=tx=>showConfirm('⚠️ Delete APPROVED Transaction?',`Delete <code>${esc(tx)}</code>?<br><br><strong style="color:var(--err)">⚠️ This transaction is APPROVED.</strong><br>Deleting it will:<br>• Remove all its numbers from the sold registry<br>• Permanently delete the transaction record<br><br><strong style="color:var(--err)">This cannot be undone!</strong>`,'Delete & Free Numbers','btn-red',()=>doTxAction('adminDeleteTransaction',{transactionId:tx,confirm:'DELETE_APPROVED'},r=>r.message,'suc'));
 const confirmDeleteAll=()=>showConfirm('🗑️ Delete ALL?','Delete <strong>everything</strong>? All transactions and numbers will be permanently removed.<br><strong style="color:var(--err)">Cannot undo!</strong>','Delete All','btn-red',()=>doTxAction('adminDeleteAllTransactions',{confirm:'DELETE_ALL'},()=>'🗑️ All deleted!','suc'));
 
-// Generic tx action — replaces doApprove/doDecline/doDelete/doDeleteAll
 function doTxAction(apiAction,params,getMsgFn,successType,onFail){
   closeConfirm();showOv('Processing...','');
   adminApi(apiAction,params).then(d=>{
@@ -1224,7 +1283,6 @@ function doTxAction(apiAction,params,getMsgFn,successType,onFail){
 
 const refreshAfterAction=()=>{loadDashboard();if(activeP==='transactions')loadTransactions();if(activeP==='numbers')loadNumbers();};
 
-// Generic search helper
 function doSearch(loaderId,apiAction,params,renderFn){
   $(loaderId).classList.add('on');$('searchResults').style.display='none';
   adminApi(apiAction,params).then(d=>{$(loaderId).classList.remove('on');renderFn(d);})
@@ -1323,17 +1381,30 @@ function saveSettings(){
   }).catch(e=>{hideOv();if(e.message!=='AUTH_FAILED')toast('Error: '+e.message,'err');});
 }
 
+/* ── FIX #4: Chunked export — fetches ALL chunks ── */
 function exportData(type){
-  showOv('Exporting...','');
-  adminApi('adminExportData',{type}).then(d=>{
-    hideOv();if(!d.success)return toast(d.error||'Failed','err');
-    let csv=d.headers.join(',')+'\n';
-    d.data.forEach(r=>{csv+=r.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(',')+'\n';});
-    const a=document.createElement('a');
-    a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
-    a.download='PisoPalaro-'+type+'-'+new Date().toISOString().slice(0,10)+'.csv';
-    a.click();toast('Exported '+(d.total||0)+' rows!','suc');
-  }).catch(e=>{hideOv();if(e.message!=='AUTH_FAILED')toast('Error: '+e.message,'err');});
+  showOv('Exporting...','Fetching data...');
+  let allData=[],headers=[];
+  function fetchChunk(chunk){
+    adminApi('adminExportData',{type,chunk}).then(d=>{
+      if(!d.success){hideOv();return toast(d.error||'Failed','err');}
+      if(chunk===0)headers=d.headers;
+      allData=allData.concat(d.data);
+      $('ovS').textContent='Fetched '+allData.length.toLocaleString()+' of '+(d.total||0).toLocaleString()+' rows...';
+      if(d.done){
+        hideOv();
+        let csv=headers.join(',')+'\n';
+        allData.forEach(r=>{csv+=r.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(',')+'\n';});
+        const a=document.createElement('a');
+        a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+        a.download='PisoPalaro-'+type+'-'+new Date().toISOString().slice(0,10)+'.csv';
+        a.click();toast('Exported '+allData.length.toLocaleString()+' rows!','suc');
+      } else {
+        fetchChunk(d.nextChunk);
+      }
+    }).catch(e=>{hideOv();if(e.message!=='AUTH_FAILED')toast('Export error: '+e.message,'err');});
+  }
+  fetchChunk(0);
 }
 
 function startAutoRefresh(){
@@ -1368,13 +1439,17 @@ document.addEventListener('DOMContentLoaded',()=>{
       if(!isNaN(v)&&v>MAX_QTY){this.value=MAX_QTY;toast('Max '+MAX_QTY.toLocaleString(),'warn');}
       calc();
     });
-    $('fR').addEventListener('input',function(){this.value=getDigitsOnly(this.value).substring(0,13);});
+    $('fR').addEventListener('input',function(){
+      this.value=getDigitsOnly(this.value).substring(0,13);
+      updateGcashRefStatus();
+    });
+    $('fR').addEventListener('blur',updateGcashRefStatus);
     checkConnection();
     setInterval(setTodayDate,60000);
     setInterval(()=>{if(!IS_ADMIN_MODE&&serverOnline)safeFetch(SCRIPT_URL+'?action=stats',15000).then(st=>{if(st?.success)updateProgress(st.sold,st.remaining);}).catch(()=>{});},30000);
   }
   document.addEventListener('keydown',e=>{
-    if(e.key==='Escape'){closeConfirm();closeDetail();}
+    if(e.key==='Escape'){closeConfirm();closeDetail();closeSoldOutOverlay();}
     if(e.key==='Enter'&&IS_ADMIN_MODE){
       if(document.activeElement===$('searchNum'))searchNumber();
       if(document.activeElement===$('searchBuyer'))searchBuyerFn();
