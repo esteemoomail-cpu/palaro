@@ -875,75 +875,6 @@ function updatePhoneStatus() {
     inp.style.borderColor = 'var(--err)';
   }
 }
-
-// ═══════════════════════════════════════════════════════════
-//   GCASH REF DUPLICATE CHECK (client-side)
-// ═══════════════════════════════════════════════════════════
-
-function checkGcashRefDuplicate() {
-  var ref = getDigitsOnly($('fR').value);
-  var errEl = $('refErr');
-  var okEl = $('refOk');
-  var statusEl = $('refStatus');
-  var inp = $('fR');
-
-  // Reset states
-  errEl.style.display = 'none';
-  okEl.style.display = 'none';
-  statusEl.className = 'gcash-ref-status';
-  statusEl.textContent = '';
-  _gcashRefDuplicate = false;
-
-  if (!ref || ref.length < 4) {
-    inp.style.borderColor = 'rgba(255,255,255,.1)';
-    return;
-  }
-
-  // Show checking state
-  statusEl.className = 'gcash-ref-status checking';
-  statusEl.textContent = '⏳ Checking reference...';
-  inp.style.borderColor = 'rgba(255,255,255,.3)';
-
-  // Debounce — clear previous timer
-  if (_gcashRefCheckTimer) clearTimeout(_gcashRefCheckTimer);
-
-  _gcashRefCheckTimer = setTimeout(function() {
-    safeFetch(SCRIPT_URL + '?action=checkGcashRef&gcashRef=' + encodeURIComponent(ref), 15000)
-      .then(function(d) {
-        // Make sure input hasn't changed
-        var currentRef = getDigitsOnly($('fR').value);
-        if (currentRef !== ref) return;
-
-        if (d && d.success) {
-          if (d.isDuplicate) {
-            _gcashRefDuplicate = true;
-            errEl.textContent = '⚠️ This GCash reference has already been used!';
-            errEl.style.display = 'block';
-            okEl.style.display = 'none';
-            statusEl.className = 'gcash-ref-status duplicate';
-            statusEl.textContent = '❌ Duplicate reference number';
-            inp.style.borderColor = 'var(--err)';
-          } else {
-            _gcashRefDuplicate = false;
-            errEl.style.display = 'none';
-            okEl.style.display = 'block';
-            statusEl.className = 'gcash-ref-status available';
-            statusEl.textContent = '✓ Reference available';
-            inp.style.borderColor = 'var(--ok)';
-          }
-        }
-      })
-      .catch(function() {
-        // On error, allow submission (server will double-check)
-        var currentRef = getDigitsOnly($('fR').value);
-        if (currentRef !== ref) return;
-        statusEl.className = 'gcash-ref-status';
-        statusEl.textContent = '';
-        inp.style.borderColor = 'rgba(255,255,255,.1)';
-      });
-  }, 600);
-}
-
 function addQty(n, el) {
   if (isSoldOut) return toast('🚫 Sold out!', 'err');
   var cur = parseInt($('fQ').value) || 0, next = cur + n;
@@ -1772,3 +1703,4 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 </body>
 </html>
+
