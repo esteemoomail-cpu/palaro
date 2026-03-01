@@ -773,8 +773,7 @@ function formatDrawDate(s){
 const setTodayDate=()=>$('dateToday').textContent=new Date().toLocaleDateString('en-PH',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
 
 function applySoldOutState(sold,remaining){
-  // FIX: Strict sold-out check — only when remaining is truly 0
-  isSoldOut=remaining!==undefined&&remaining!==null&&remaining<=0&&sold>=TOTAL_POOL;
+  isSoldOut=remaining<=0&&sold>=TOTAL_POOL;
   const banner=$('soldOutBanner'),overlay=$('soldOutOverlay');
   const buyBtns=document.querySelectorAll('#p1 .btn.b1,#p2 .btn.b1');
   const qpBtns=document.querySelectorAll('.qp-btn');
@@ -877,6 +876,7 @@ function updatePhoneStatus(){
   if(!valid)errEl.textContent=d.length<11?'Need 11 digits ('+d.length+'/11)':(d.startsWith('09')?'Invalid':'Must start with 09');
 }
 
+/* ── FIX: GCash Ref validation & inline error ── */
 function updateGcashRefStatus(){
   const r=$('fR').value.trim(),d=getDigitsOnly(r);
   const errEl=$('gcashRefErr'),inp=$('fR'),warn=$('gcashDupeWarn');
@@ -890,13 +890,17 @@ function updateGcashRefStatus(){
     inp.style.borderColor='var(--err)';warn.classList.remove('on');return;
   }
   errEl.style.display='none';inp.style.borderColor='rgba(255,255,255,.1)';
+  // Client-side duplicate warning (non-blocking, just a warning)
   if(d.length>=4){
     clearTimeout(inp._dupeTimer);
     inp._dupeTimer=setTimeout(()=>{
       if(!serverOnline)return;
+      safeFetch(SCRIPT_URL+'?action=stats&_t='+Date.now(),10000).catch(()=>{});
+      // Quick search via buyer search to check for the ref
       const params=new URLSearchParams({action:'adminSearchBuyer',query:d,token:TOKEN||'_'});
       safeFetch(SCRIPT_URL+'?'+params,15000).then(res=>{
         if(res?.success&&res.total>0){
+          // Check if any result has this exact gcash ref
           const found=res.results.some(r=>String(r.gcashRef).trim()===d);
           if(found){warn.classList.add('on');}else{warn.classList.remove('on');}
         } else {warn.classList.remove('on');}
@@ -981,30 +985,12 @@ function doAttemptPurchase(nm,ph,qt,ref,tryN){
       } else {
         hideOv();$('buyBtn').disabled=false;_purchaseInProgress=false;
         toast(d.error||'Failed.','err');
-
-        // FIX: Only trigger sold-out when error explicitly says "Only 0 numbers left"
-        // Use exact match to avoid false positives like "Only 100000 numbers left"
-        if(d.error){
-          const errLower=d.error.toLowerCase();
-          if(errLower==='only 0 numbers left'||errLower.includes('all numbers have been sold')){
-            updateProgress(TOTAL_POOL,0);
-          } else {
-            // Parse remaining count from error like "Only 100000 numbers left"
-            const remainMatch=d.error.match(/Only\s+([\d,]+)\s+numbers?\s+left/i);
-            if(remainMatch){
-              const remainFromErr=parseInt(remainMatch[1].replace(/,/g,''));
-              if(!isNaN(remainFromErr)&&remainFromErr>=0){
-                updateProgress(TOTAL_POOL-remainFromErr,remainFromErr);
-              }
-            }
-          }
-          // Show inline duplicate GCash error prominently
-          if(errLower.includes('gcash reference')){
-            $('gcashDupeWarn').classList.add('on');
-            $('gcashDupeWarn').innerHTML='⚠️ <strong>'+esc(d.error)+'</strong>';
-          }
+        if(d.error&&(d.error.includes('0 numbers left')||d.error.includes('Only 0')))updateProgress(TOTAL_POOL,0);
+        // Show inline duplicate GCash error prominently
+        if(d.error&&d.error.toLowerCase().includes('gcash reference')){
+          $('gcashDupeWarn').classList.add('on');
+          $('gcashDupeWarn').innerHTML='⚠️ <strong>'+esc(d.error)+'</strong>';
         }
-
         if(!d.retryable)checkConnection();
       }
     })
@@ -1395,6 +1381,7 @@ function saveSettings(){
   }).catch(e=>{hideOv();if(e.message!=='AUTH_FAILED')toast('Error: '+e.message,'err');});
 }
 
+/* ── FIX #4: Chunked export — fetches ALL chunks ── */
 function exportData(type){
   showOv('Exporting...','Fetching data...');
   let allData=[],headers=[];
@@ -1474,4 +1461,3 @@ document.addEventListener('DOMContentLoaded',()=>{
 </script>
 </body>
 </html>
-
