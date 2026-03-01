@@ -240,11 +240,6 @@ tr:hover td{background:rgba(255,215,0,.02)}
 .pub-link-btn:hover{background:rgba(0,122,255,.2);color:#fff;transform:translateY(-1px)}
 ::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:rgba(255,255,255,.02)}::-webkit-scrollbar-thumb{background:rgba(255,215,0,.15);border-radius:3px}
 
-.gcash-ref-status{font-size:.7rem;margin-top:4px;display:none}
-.gcash-ref-status.checking{display:block;color:var(--sub)}
-.gcash-ref-status.duplicate{display:block;color:var(--err)}
-.gcash-ref-status.available{display:block;color:var(--ok)}
-
 @media(max-width:500px){
   .qp-grid{grid-template-columns:repeat(3,1fr)}
   .info-bar{padding:16px}
@@ -383,8 +378,7 @@ tr:hover td{background:rgba(255,215,0,.02)}
       <label>GCash Reference # <span style="font-weight:400;text-transform:none;color:var(--sub)">(digits only, max 13)</span></label>
       <input id="fR" placeholder="Enter ref from receipt" autocomplete="off" maxlength="13" inputmode="numeric">
       <div class="field-err" id="refErr"></div>
-      <div class="field-ok" id="refOk">✓ Available</div>
-      <div class="gcash-ref-status" id="refStatus"></div>
+      <div class="field-ok" id="refOk">✓ Valid</div>
     </div>
     <button class="btn b1" id="buyBtn" onclick="submitPurchase()">✓ Confirm Entry</button>
     <button class="btn b2" onclick="go1()">← Back</button>
@@ -576,8 +570,6 @@ let _art = null, _kat = null, activeP = 'dashboard';
 let _purchaseInProgress = false;
 let isSoldOut = false;
 let logoLoaded = false;
-let _gcashRefCheckTimer = null;
-let _gcashRefDuplicate = false;
 
 function $(id) { return document.getElementById(id); }
 function show(id) { $(id).classList.remove('hide'); }
@@ -911,12 +903,8 @@ function go2() {
   $('dA').textContent = ' ₱ ' + (qt * PRICE_PER).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   stpSet(2);
 
-  // Reset GCash ref status when entering step 2
-  _gcashRefDuplicate = false;
   $('refErr').style.display = 'none';
   $('refOk').style.display = 'none';
-  $('refStatus').className = 'gcash-ref-status';
-  $('refStatus').textContent = '';
   $('fR').style.borderColor = 'rgba(255,255,255,.1)';
 }
 function go1() { hide('p2'); show('p1'); stpSet(1); }
@@ -927,11 +915,6 @@ function submitPurchase() {
   var ref = $('fR').value.trim();
   if (!ref) return toast('Enter GCash ref.', 'err');
   if (!/^\d{1,13}$/.test(ref)) return toast('Digits only (max 13).', 'err');
-
-  // Block submission if duplicate detected
-  if (_gcashRefDuplicate) {
-    return toast('⚠️ This GCash reference has already been used! Please use a different one.', 'err');
-  }
 
   if (!serverOnline) { toast('Offline. Reconnecting...', 'err'); checkConnection(); return; }
   var nm = sanitizeInput($('fN').value, MAX_NAME_LEN);
@@ -968,17 +951,6 @@ function doAttemptPurchase(nm, ph, qt, ref, tryN) {
       } else {
         hideOv(); $('buyBtn').disabled = false; _purchaseInProgress = false;
         toast(d.error || 'Failed.', 'err');
-
-        // If duplicate ref error from server, update UI
-        if (d.error && d.error.indexOf('already been used') !== -1) {
-          _gcashRefDuplicate = true;
-          $('refErr').textContent = '⚠️ This GCash reference has already been used!';
-          $('refErr').style.display = 'block';
-          $('refOk').style.display = 'none';
-          $('refStatus').className = 'gcash-ref-status duplicate';
-          $('refStatus').textContent = '❌ Duplicate reference number';
-          $('fR').style.borderColor = 'var(--err)';
-        }
 
         if (d.error && (d.error.indexOf('0 numbers left') !== -1 || d.error.indexOf('Only 0') !== -1)) {
           updateProgress(TOTAL_POOL, 0);
@@ -1071,12 +1043,8 @@ function again() {
   ['fN', 'fP', 'fQ', 'fR'].forEach(function(id) { $(id).value = ''; });
   $('dT').textContent = '₱ 0.00'; $('phoneErr').style.display = 'none'; $('phoneOk').style.display = 'none';
   $('fP').style.borderColor = 'rgba(255,255,255,.1)';
-  // Reset GCash ref status
-  _gcashRefDuplicate = false;
   $('refErr').style.display = 'none';
   $('refOk').style.display = 'none';
-  $('refStatus').className = 'gcash-ref-status';
-  $('refStatus').textContent = '';
   $('fR').style.borderColor = 'rgba(255,255,255,.1)';
   hide('p2'); show('p1'); stpSet(1); myNums = [];
   _purchaseInProgress = false;
@@ -1671,10 +1639,8 @@ document.addEventListener('DOMContentLoaded', function() {
       calc();
     });
 
-    // GCash ref input — digits only + duplicate check
     $('fR').addEventListener('input', function() {
       this.value = getDigitsOnly(this.value).substring(0, 13);
-      checkGcashRefDuplicate();
     });
 
     checkConnection();
