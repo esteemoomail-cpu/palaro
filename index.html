@@ -1368,28 +1368,45 @@ function saveSettings(){
 }
 
 function exportData(type){
-  showOv('Exporting...','Fetching data...');
-  let allData=[],headers=[];
-  function fetchChunk(chunk){
-    adminApi('adminExportData',{type,chunk}).then(d=>{
-      if(!d.success){hideOv();return toast(d.error||'Failed','err');}
-      if(chunk===0)headers=d.headers;
-      allData=allData.concat(d.data);
-      $('ovS').textContent='Fetched '+allData.length.toLocaleString()+' of '+(d.total||0).toLocaleString()+' rows...';
-      if(d.done){
-        hideOv();
-        let csv=headers.join(',')+'\n';
-        allData.forEach(r=>{csv+=r.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(',')+'\n';});
-        const a=document.createElement('a');
-        a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
-        a.download='PisoPalaro-'+type+'-'+new Date().toISOString().slice(0,10)+'.csv';
-        a.click();toast('Exported '+allData.length.toLocaleString()+' rows!','suc');
-      } else {
-        fetchChunk(d.nextChunk);
-      }
-    }).catch(e=>{hideOv();if(e.message!=='AUTH_FAILED')toast('Export error: '+e.message,'err');});
-  }
-  fetchChunk(0);
+  showOv('Exporting...','Connecting to server...');
+  
+  adminApi('adminExportFull',{type:type}).then(d=>{
+    hideOv();
+    
+    if(!d.success){
+      toast(d.error||'Export failed','err');
+      return;
+    }
+    
+    if(!d.csv||d.total===0){
+      toast('No data to export','warn');
+      return;
+    }
+    
+    // Add BOM for Excel UTF-8 compatibility (preserves leading zeros, special chars)
+    const bom='\uFEFF';
+    const blob=new Blob([bom+d.csv],{type:'text/csv;charset=utf-8;'});
+    const url=URL.createObjectURL(blob);
+    
+    const a=document.createElement('a');
+    a.href=url;
+    a.download=d.filename||('PisoPalaro-'+type+'-'+new Date().toISOString().slice(0,10)+'.csv');
+    a.style.display='none';
+    document.body.appendChild(a);
+    a.click();
+    
+    // Cleanup
+    setTimeout(()=>{
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    },1000);
+    
+    toast('✅ Exported '+d.total.toLocaleString()+' rows!','suc');
+    
+  }).catch(e=>{
+    hideOv();
+    if(e.message!=='AUTH_FAILED')toast('Export error: '+e.message,'err');
+  });
 }
 
 function startAutoRefresh(){
@@ -1446,3 +1463,4 @@ document.addEventListener('DOMContentLoaded',()=>{
 </script>
 </body>
 </html>
+
