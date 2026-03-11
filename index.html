@@ -1150,12 +1150,28 @@ function submitGcashRef(){
 
 function cancelReservation(){
   if(!_reservedTx){go1();return;}
-  // The reservation stays as PENDING with gcashRef=PENDING
-  // Admin can decline it later. User just goes back.
   const txId=_reservedTx.txId;
-  _reservedTx=null;myNums=[];
-  go1();
-  toast('Reservation cancelled. TX '+txId+' will expire.','warn');
+
+  showOv('Cancelling reservation...','Freeing your numbers back to the pool');
+
+  safeFetch(SCRIPT_URL+'?'+new URLSearchParams({action:'cancelReservation',transactionId:txId}),60000)
+    .then(d=>{
+      hideOv();
+      _reservedTx=null;myNums=[];
+      go1();
+      if(d.success){
+        toast('✅ Reservation cancelled. '+(d.freedNumbers||0)+' numbers freed.','suc');
+        checkConnection();
+      } else {
+        toast(d.error||'Could not cancel on server. Numbers may be freed by admin.','warn');
+      }
+    })
+    .catch(err=>{
+      hideOv();
+      _reservedTx=null;myNums=[];
+      go1();
+      toast('Connection error. Admin can decline TX '+txId+' manually.','warn');
+    });
 }
 
 function go1(){
@@ -1650,3 +1666,4 @@ document.addEventListener('DOMContentLoaded',()=>{
 </script>
 </body>
 </html>
+
