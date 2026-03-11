@@ -48,7 +48,7 @@ header{text-align:center;padding:30px 0 8px}
 .stock-check-banner .sp-sm{width:16px;height:16px;border:2px solid rgba(255,215,0,.15);border-top-color:var(--gold);border-radius:50%;animation:spin .6s linear infinite;flex-shrink:0}
 
 /* ── Pool info badge ── */
-.pool-badge{display:inline-flex;align-items:center;gap:6px;margin-top:6px;padding:4px 14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:20px;font-size:.72rem;color:var(--sub);font-family:'JetBrains Mono',monospace;letter-spacing:1px}
+.pool-badge{display:inline-flex;align-items:center;gap:6px;margin-top:6px;padding:4px 14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:20px;font-size:.72rem;color:var(--sub);font-family:'JetBrains Mono',monospace;letter-spacing:1px} .pool-badge .buyer-num{color:var(--gold);font-weight:700}
 
 /* ── Maintenance overlays ── */
 .maint-overlay{display:none;position:fixed;inset:0;background:rgba(6,9,25,.97);z-index:9998;justify-content:center;align-items:center;flex-direction:column;text-align:center;padding:20px}
@@ -382,7 +382,7 @@ footer{text-align:center;padding:24px 0 16px;color:var(--sub);font-size:.72rem;l
       <div class="logo" id="logoText">🎰 PISO<span>PALARO</span></div>
       <p class="tag" id="tagLine">Get your lucky numbers — only ₱1 each!</p>
       <div class="pill" id="priceTag">₱1.00 PER ENTRY</div>
-      <div class="pool-badge" id="poolBadge">🎱 Pool: 000000–199999 (200,000 numbers)</div>
+      <div class="pool-badge" id="buyersBadge">👥 <span id="uniqueBuyersCount">0</span> Buyers</div>
     </header>
     <div class="draw-banner" id="drawBanner"><div class="db-label">🎯 Draw Date</div><div class="db-date" id="drawDateText"></div></div>
     <div class="announce-banner" id="announceBanner"><span style="font-size:1.2rem;margin-right:6px">📢</span><span id="announceText"></span></div>
@@ -935,16 +935,24 @@ function updateProgress(sold,rem,total){
     t.textContent='🚫 SOLD OUT';t.classList.add('low');f.classList.add('low');f.style.width='0%';
     $('priceTag').textContent='🚫 SOLD OUT';
     Object.assign($('priceTag').style,{background:'linear-gradient(135deg,#ff3b3b,#ff6b6b)',color:'#fff'});
-  } else if(soldPct>=80){
-    t.textContent=(pct>10?'Running low':'Almost sold out!')+' ('+rem.toLocaleString()+')';
+  } else if(soldPct>=90){
+    t.textContent='Almost sold out! ('+rem.toLocaleString()+' left)';
     t.classList.add('low');f.classList.add('low');
-  } else if(pct>60){
-    t.textContent='Plenty available ('+rem.toLocaleString()+')';t.classList.add('high');
+  } else if(soldPct>=70){
+    t.textContent='Running low';
+    t.classList.add('low');f.classList.add('low');
+  } else if(soldPct>=40){
+    t.textContent='Selling fast';
+    t.classList.add('mid');f.classList.add('mid');
+  } else {
+    t.textContent='Plenty available';t.classList.add('high');
     $('priceTag').style.background=$('priceTag').style.color='';
-  } else if(pct>30){t.textContent='Selling fast ('+rem.toLocaleString()+')';t.classList.add('mid');f.classList.add('mid');}
-  else{t.textContent='Running low ('+rem.toLocaleString()+')';t.classList.add('low');f.classList.add('low');}
+  }
 }
-
+function updateBuyersBadge(count){
+  const el=$('uniqueBuyersCount');
+  if(el)el.textContent=(+count||0).toLocaleString();
+}
 function checkConnection(){
   const bar=$('connBar'),txt=$('connTxt'),ep=$('errPanel');
   bar.className='conn checking';txt.textContent='Connecting...';ep.classList.add('hide');
@@ -957,7 +965,10 @@ function checkConnection(){
       if(h.pool&&h.pool>=POOL_MIN)applyPoolConfig(h.pool);
     }
     if(s?.success)applyPublicSettings(s);
-    if(st?.success)updateProgress(st.sold,st.remaining,st.total);
+        if(st?.success){
+      updateProgress(st.sold,st.remaining,st.total);
+      if(st.uniqueBuyers!==undefined)updateBuyersBadge(st.uniqueBuyers);
+    }
   }).catch(err=>{
     serverOnline=false;bar.className='conn offline';
     txt.textContent='✗ '+(err.message==='TIMEOUT'?'Timed out':err.message);
@@ -1200,8 +1211,7 @@ const cpA=()=>cpText(myNums.join('\n'));
 const cpGC=()=>cpText(GCASH_NUMBER.replace(/\D/g,''));
 
 function dlA(){
-  const r=getPoolRange();
-  const L=[LOTTERY_NAME,'Pool: '+r.min+'–'+r.max+' ('+TOTAL_POOL.toLocaleString()+')','TX: '+$('rI').textContent,'Date: '+$('rD').textContent,'GCash Ref: '+$('rR').textContent,'Status: PENDING','Qty: '+myNums.length,'Amount: '+$('rA').textContent,'','NUMBERS:',''];
+  const L=[LOTTERY_NAME,'TX: '+$('rI').textContent,'Date: '+$('rD').textContent,'GCash Ref: '+$('rR').textContent,'Status: PENDING','Qty: '+myNums.length,'Amount: '+$('rA').textContent,'','NUMBERS:',''];
   myNums.forEach(n=>L.push(n));
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([L.join('\n')],{type:'text/plain'}));
@@ -1437,8 +1447,7 @@ const copyDetailNums=()=>{
 function downloadDetailTx(){
   if(!_detailTx)return;
   const tx=_detailTx,nums=tx._allNums||[];
-  const r=getPoolRange();
-  const L=[LOTTERY_NAME,'Pool: '+r.min+'–'+r.max,'','TX: '+tx.transactionId,'Timestamp: '+tx.timestamp,'Name: '+tx.name,'Phone: '+tx.phone,'GCash: '+tx.gcashRef,'Status: '+tx.status,'Qty: '+tx.quantity,'Amount: ₱'+Number(tx.amount).toLocaleString(),'','NUMBERS:',''];
+  const L=[LOTTERY_NAME,'','TX: '+tx.transactionId,'Timestamp: '+tx.timestamp,'Name: '+tx.name,'Phone: '+tx.phone,'GCash: '+tx.gcashRef,'Status: '+tx.status,'Qty: '+tx.quantity,'Amount: ₱'+Number(tx.amount).toLocaleString(),'','NUMBERS:',''];
   nums.forEach(n=>L.push(n));
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([L.join('\n')],{type:'text/plain'}));
@@ -1649,7 +1658,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     $('fR').addEventListener('blur',updateGcashRefStatus);
     checkConnection();
     setInterval(setTodayDate,60000);
-    setInterval(()=>{if(!IS_ADMIN_MODE&&serverOnline)safeFetch(SCRIPT_URL+'?action=stats',15000).then(st=>{if(st?.success)updateProgress(st.sold,st.remaining,st.total);}).catch(()=>{});},30000);
+    setInterval(()=>{if(!IS_ADMIN_MODE&&serverOnline)safeFetch(SCRIPT_URL+'?action=stats',15000).then(st=>{if(st?.success){updateProgress(st.sold,st.remaining,st.total);if(st.uniqueBuyers!==undefined)updateBuyersBadge(st.uniqueBuyers);}}).catch(()=>{});},30000);
   }
   document.addEventListener('keydown',e=>{
     if(e.key==='Escape'){closeConfirm();closeDetail();}
@@ -1664,3 +1673,4 @@ document.addEventListener('DOMContentLoaded',()=>{
 </script>
 </body>
 </html>
+
