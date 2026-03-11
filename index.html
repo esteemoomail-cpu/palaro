@@ -18,7 +18,6 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
 body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 30% -10%,rgba(255,215,0,.06),transparent 60%),radial-gradient(ellipse at 70% 110%,rgba(0,122,255,.04),transparent 55%);pointer-events:none}
 .w{max-width:860px;margin:0 auto;padding:14px;position:relative;z-index:1}
 
-/* ── Header ── */
 header{text-align:center;padding:30px 0 8px}
 .logo-img-wrap{display:none;justify-content:center;align-items:center;margin-bottom:6px}
 .logo-img-wrap img{max-height:clamp(60px,15vw,120px);width:auto;object-fit:contain;filter:drop-shadow(0 4px 24px rgba(255,215,0,.18))}
@@ -28,9 +27,9 @@ header{text-align:center;padding:30px 0 8px}
 .logo.hidden{display:none}
 .tag{color:var(--sub);font-size:.85rem;margin-top:4px;letter-spacing:1px}
 .pill{display:inline-block;margin-top:12px;padding:7px 24px;background:linear-gradient(135deg,var(--goldd),var(--gold));color:#000;border-radius:50px;font-weight:800;font-size:.95rem}
-.range{margin-top:6px;color:var(--sub);font-size:.75rem;font-family:'JetBrains Mono',monospace;letter-spacing:2px}
+.pool-badge{display:inline-flex;align-items:center;gap:6px;margin-top:6px;padding:4px 14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:20px;font-size:.72rem;color:var(--sub);font-family:'JetBrains Mono',monospace;letter-spacing:1px}
+.pool-badge .buyer-num{color:var(--gold);font-weight:700}
 
-/* ── Banners ── */
 .draw-banner,.announce-banner,.sold-out-banner,.pending-notice{border-radius:var(--r);padding:12px 18px;margin:14px 0;line-height:1.7}
 .draw-banner{background:linear-gradient(135deg,rgba(255,215,0,.1),rgba(255,215,0,.03));border:1px solid rgba(255,215,0,.15);text-align:center;display:none}
 .draw-banner .db-label{font-size:.65rem;color:var(--sub);text-transform:uppercase;letter-spacing:2px;margin-bottom:2px}
@@ -40,24 +39,22 @@ header{text-align:center;padding:30px 0 8px}
 .sold-out-banner.on{display:block}
 .pending-notice{background:linear-gradient(135deg,rgba(255,171,0,.1),rgba(255,171,0,.03));border:1px solid rgba(255,171,0,.2);font-size:.85rem;color:var(--pend);margin:12px 0}
 
-/* ── Stock check banner ── */
 .stock-check-banner{border-radius:var(--r);padding:14px 18px;margin:14px 0;line-height:1.7;display:none}
 .stock-check-banner.checking{display:flex;align-items:center;gap:10px;background:rgba(255,215,0,.06);border:1px solid rgba(255,215,0,.12);color:var(--gold);font-size:.85rem}
 .stock-check-banner.ok{display:block;background:rgba(0,230,118,.06);border:1px solid rgba(0,230,118,.15);color:var(--ok);font-size:.85rem}
 .stock-check-banner.fail{display:block;background:rgba(255,59,59,.06);border:1px solid rgba(255,59,59,.15);color:var(--err);font-size:.85rem}
 .stock-check-banner .sp-sm{width:16px;height:16px;border:2px solid rgba(255,215,0,.15);border-top-color:var(--gold);border-radius:50%;animation:spin .6s linear infinite;flex-shrink:0}
 
-/* ── Pool info badge ── */
-.pool-badge{display:inline-flex;align-items:center;gap:6px;margin-top:6px;padding:4px 14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:20px;font-size:.72rem;color:var(--sub);font-family:'JetBrains Mono',monospace;letter-spacing:1px} .pool-badge .buyer-num{color:var(--gold);font-weight:700}
+.reserved-banner{border-radius:var(--r);padding:16px 18px;margin:14px 0;line-height:1.7;background:linear-gradient(135deg,rgba(0,230,118,.08),rgba(0,230,118,.02));border:1px solid rgba(0,230,118,.2);font-size:.85rem;color:var(--ok)}
+.reserved-banner strong{color:#69f0ae}
+.reserved-banner .res-txid{font-family:'JetBrains Mono',monospace;color:var(--gold);font-weight:700;font-size:.82rem;display:inline-block;margin-top:4px}
 
-/* ── Maintenance overlays ── */
 .maint-overlay{display:none;position:fixed;inset:0;background:rgba(6,9,25,.97);z-index:9998;justify-content:center;align-items:center;flex-direction:column;text-align:center;padding:20px}
 .maint-overlay.on{display:flex}
 .maint-overlay .mi{font-size:4rem;margin-bottom:16px}
 .maint-overlay h2{color:var(--gold);font-size:1.5rem;margin-bottom:8px}
 .maint-overlay p{color:var(--sub);font-size:.92rem;max-width:400px;line-height:1.8}
 
-/* ── Info bar ── */
 .info-bar{background:var(--card);border:1px solid var(--bdr);border-radius:16px;padding:20px 24px;backdrop-filter:blur(10px);margin:22px 0}
 .info-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px}
 .date-box{display:flex;align-items:center;gap:10px}
@@ -68,7 +65,6 @@ header{text-align:center;padding:30px 0 8px}
 .avail-status{font-size:.82rem;font-weight:600;margin-top:2px;text-align:right}
 .avail-status.high{color:var(--ok)}.avail-status.mid{color:var(--warn)}.avail-status.low{color:var(--err)}
 
-/* ── Progress ── */
 .progress-wrap{position:relative}
 .progress-track{width:100%;height:14px;background:rgba(255,255,255,.06);border-radius:10px;overflow:hidden;border:1px solid rgba(255,255,255,.05)}
 .progress-fill{height:100%;border-radius:10px;background:linear-gradient(90deg,var(--ok),#69f0ae);transition:width 1.5s;position:relative}
@@ -79,7 +75,6 @@ header{text-align:center;padding:30px 0 8px}
 .progress-dots span{width:1px;height:6px;background:rgba(255,255,255,.1)}
 @keyframes shimmer{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
 
-/* ── Connection bar ── */
 .conn{display:flex;align-items:center;justify-content:center;gap:8px;margin:16px 0 8px;padding:10px;border-radius:var(--r);font-size:.8rem;font-weight:600;transition:.3s}
 .conn .dot{width:8px;height:8px;border-radius:50%}
 .conn.checking{background:rgba(255,255,255,.05);color:var(--sub);border:1px solid rgba(255,255,255,.08)}
@@ -90,7 +85,6 @@ header{text-align:center;padding:30px 0 8px}
 .conn.offline .dot{background:var(--err)}
 @keyframes pulse{0%,100%{opacity:.3}50%{opacity:1}}
 
-/* ── Card / Form ── */
 .card{background:var(--card);border:1px solid var(--bdr);border-radius:16px;padding:24px;backdrop-filter:blur(10px);margin-bottom:22px}
 .steps{display:flex;justify-content:center;align-items:center;margin-bottom:22px}
 .stp{display:flex;align-items:center;gap:5px;padding:7px 10px;font-size:.76rem;font-weight:600;color:var(--sub);transition:.3s}
@@ -110,7 +104,6 @@ header{text-align:center;padding:30px 0 8px}
 .fg select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%236a73a0'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center}
 .fr{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 
-/* ── Total / GCash ── */
 .tot{background:linear-gradient(135deg,rgba(255,215,0,.08),rgba(255,215,0,.02));border:1px dashed rgba(255,215,0,.2);border-radius:var(--r);padding:14px;text-align:center;margin:14px 0}
 .tot .tl{font-size:.66rem;color:var(--sub);text-transform:uppercase;letter-spacing:2px;margin-bottom:3px}
 .tot .tv{font-size:1.9rem;font-weight:900;color:var(--gold);font-family:'JetBrains Mono',monospace}
@@ -120,7 +113,6 @@ header{text-align:center;padding:30px 0 8px}
 .gc-num{font-family:'JetBrains Mono',monospace;font-size:1.2rem;font-weight:700;color:#64b5f6;background:rgba(0,122,255,.12);padding:9px 16px;border-radius:8px;display:inline-block;margin:5px 0;cursor:pointer;user-select:all;border:1px dashed rgba(100,181,246,.3);transition:.2s}
 .gc-num:hover{background:rgba(0,122,255,.2)}
 
-/* ── Buttons ── */
 .btn{width:100%;padding:13px;border:none;border-radius:var(--r);font-size:.9rem;font-weight:700;font-family:inherit;cursor:pointer;transition:.25s;text-transform:uppercase;letter-spacing:2px}
 .b1{background:linear-gradient(135deg,var(--goldd),var(--gold));color:#000;box-shadow:0 4px 24px rgba(255,215,0,.2)}
 .b1:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 6px 32px rgba(255,215,0,.3)}
@@ -129,7 +121,6 @@ header{text-align:center;padding:30px 0 8px}
 .b2:hover{background:rgba(255,255,255,.1)}
 .btn.sold-out{background:rgba(255,255,255,.08)!important;color:var(--sub)!important;box-shadow:none!important;cursor:not-allowed!important;pointer-events:none}
 
-/* ── Quick pick ── */
 .qp-wrap{margin-bottom:14px}
 .qp-label{font-size:.7rem;font-weight:600;color:var(--sub);text-transform:uppercase;letter-spacing:2px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between}
 .qp-label .qp-reset{font-size:.65rem;color:var(--sub);cursor:pointer;text-transform:none;letter-spacing:0;padding:2px 8px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:4px;font-weight:500;transition:.2s}
@@ -143,7 +134,6 @@ header{text-align:center;padding:30px 0 8px}
 @keyframes qpFlash{0%{transform:scale(1.08)}60%{transform:scale(.97)}100%{transform:scale(1)}}
 .fg input.sold-out{opacity:.4;pointer-events:none}
 
-/* ── Receipt ── */
 .receipt{background:var(--card);border:1px solid var(--bdr);border-radius:16px;padding:24px;backdrop-filter:blur(10px)}
 .rh{text-align:center;padding-bottom:16px;border-bottom:1px dashed var(--bdr);margin-bottom:14px}
 .rh .ic{width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.7rem;margin:0 auto 10px;animation:pop .4s}
@@ -166,7 +156,6 @@ header{text-align:center;padding:30px 0 8px}
 .copy-btn{flex-shrink:0;padding:5px 12px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:6px;color:var(--sub);font-size:.72rem;font-weight:600;cursor:pointer;font-family:inherit;transition:.2s;text-transform:uppercase;letter-spacing:1px}
 .copy-btn:hover{background:rgba(255,255,255,.13);color:var(--txt)}
 
-/* ── Overlay / Spinner / Toast ── */
 .ov{display:none;position:fixed;inset:0;background:rgba(6,9,25,.95);z-index:9999;justify-content:center;align-items:center;flex-direction:column;text-align:center;padding:20px}
 .ov.on{display:flex}
 .sp{width:50px;height:50px;border:4px solid rgba(255,215,0,.12);border-top-color:var(--gold);border-radius:50%;animation:spin .7s linear infinite;margin-bottom:14px}
@@ -184,11 +173,9 @@ header{text-align:center;padding:30px 0 8px}
 .search-loading.on{display:flex}
 .search-loading .sp-sm{width:16px;height:16px;border:2px solid rgba(255,215,0,.15);border-top-color:var(--gold);border-radius:50%;animation:spin .6s linear infinite}
 
-/* ── Duplicate GCash warning ── */
 .gcash-dupe-warn{background:linear-gradient(135deg,rgba(255,59,59,.1),rgba(255,59,59,.03));border:1px solid rgba(255,59,59,.25);border-radius:var(--r);padding:14px 18px;margin:12px 0;font-size:.85rem;color:var(--err);line-height:1.7;display:none}
 .gcash-dupe-warn.on{display:block}
 
-/* ── Admin login ── */
 .login-wrap{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px}
 .login-box{background:var(--card);border:1px solid var(--bdr);border-radius:20px;padding:40px 32px;width:100%;max-width:420px;backdrop-filter:blur(10px);text-align:center}
 .login-box h1{font-size:1.6rem;margin-bottom:4px;background:linear-gradient(135deg,var(--goldd),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
@@ -198,7 +185,6 @@ header{text-align:center;padding:30px 0 8px}
 .pub-link-btn{display:inline-flex;align-items:center;gap:6px;padding:8px 18px;background:rgba(0,122,255,.1);border:1px solid rgba(0,122,255,.2);color:#64b5f6;border-radius:10px;font-size:.78rem;font-weight:700;text-decoration:none;transition:.2s;white-space:nowrap}
 .pub-link-btn:hover{background:rgba(0,122,255,.2);color:#fff;transform:translateY(-1px)}
 
-/* ── Admin layout ── */
 .admin{display:none;min-height:100vh}
 .topbar{background:var(--card);border-bottom:1px solid var(--bdr);padding:12px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;backdrop-filter:blur(10px)}
 .topbar h1{font-size:1.1rem;background:linear-gradient(135deg,var(--goldd),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
@@ -216,7 +202,6 @@ header{text-align:center;padding:30px 0 8px}
 .page-title{font-size:1.4rem;font-weight:800;margin-bottom:6px}
 .page-sub{color:var(--sub);font-size:.82rem;margin-bottom:24px}
 
-/* ── Dashboard stats ── */
 .stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;margin-bottom:24px}
 .stat{background:var(--card2);border:1px solid var(--bdr);border-radius:14px;padding:18px;transition:.2s}
 .stat:hover{border-color:rgba(255,215,0,.2);transform:translateY(-1px)}
@@ -225,7 +210,6 @@ header{text-align:center;padding:30px 0 8px}
 .stat .sc{font-size:.7rem;margin-top:4px}
 .stat.gold .sv{color:var(--gold)}.stat.green .sv{color:var(--ok)}.stat.blue .sv{color:var(--gc)}.stat.red .sv{color:var(--err)}.stat.yellow .sv{color:var(--pend)}
 
-/* ── Tables ── */
 .tbl-wrap{background:var(--card2);border:1px solid var(--bdr);border-radius:14px;overflow:hidden;margin-bottom:20px}
 .tbl-head{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--bdr);flex-wrap:wrap;gap:10px}
 .tbl-head h3{font-size:.95rem}
@@ -255,7 +239,6 @@ tr:hover td{background:rgba(255,215,0,.02)}
 .clickable-row{cursor:pointer;transition:.2s}.clickable-row:hover td{background:rgba(255,215,0,.06)!important}
 .tx-actions{display:flex;gap:4px;flex-wrap:wrap}
 
-/* ── Settings / Tools ── */
 .settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
 .setting-group,.tool-card{background:var(--card2);border:1px solid var(--bdr);border-radius:14px;padding:20px;margin-bottom:16px}
 .setting-group h3,.tool-card h3{font-size:.9rem;margin-bottom:14px;display:flex;align-items:center;gap:8px}
@@ -269,12 +252,10 @@ tr:hover td{background:rgba(255,215,0,.02)}
 .feed li:last-child{border-bottom:none}
 .feed .time{color:var(--sub);font-size:.7rem;font-family:'JetBrains Mono',monospace;white-space:nowrap}
 
-/* ── Pool size help ── */
 .pool-help{font-size:.72rem;color:var(--sub);margin-top:6px;line-height:1.6;padding:8px 10px;background:rgba(255,255,255,.03);border-radius:6px;border:1px solid rgba(255,255,255,.05)}
 .pool-help code{background:rgba(0,0,0,.3);padding:1px 6px;border-radius:3px;font-family:'JetBrains Mono',monospace;color:var(--gold);font-size:.7rem}
 .pool-preview{margin-top:8px;padding:10px 14px;background:rgba(255,215,0,.04);border:1px solid rgba(255,215,0,.1);border-radius:8px;font-size:.78rem;color:var(--gold);font-family:'JetBrains Mono',monospace}
 
-/* ── Modals ── */
 .confirm-modal,.detail-modal{display:none;position:fixed;inset:0;background:rgba(6,9,25,.92);z-index:10000;justify-content:center;align-items:center;padding:20px;overflow-y:auto}
 .confirm-modal.on,.detail-modal.on{display:flex}
 .detail-modal{align-items:flex-start;background:rgba(6,9,25,.94)}
@@ -291,15 +272,12 @@ tr:hover td{background:rgba(255,215,0,.02)}
 .detail-nums h3{font-size:.9rem;margin-bottom:8px;display:flex;align-items:center;gap:6px}
 .detail-actions{display:flex;gap:8px;margin-top:18px;padding-top:18px;border-top:1px dashed var(--bdr);flex-wrap:wrap;justify-content:center}
 
-/* ── Footer ── */
 footer{text-align:center;padding:24px 0 16px;color:var(--sub);font-size:.72rem;letter-spacing:1px;opacity:.6}
 
-/* ── Scrollbar ── */
 ::-webkit-scrollbar{width:6px}
 ::-webkit-scrollbar-track{background:rgba(255,255,255,.02)}
 ::-webkit-scrollbar-thumb{background:rgba(255,215,0,.15);border-radius:3px}
 
-/* ── Responsive ── */
 @media(max-width:500px){
   .qp-grid{grid-template-columns:repeat(3,1fr)}
   .info-top{flex-direction:column;align-items:flex-start;gap:12px}
@@ -382,7 +360,7 @@ footer{text-align:center;padding:24px 0 16px;color:var(--sub);font-size:.72rem;l
       <div class="logo" id="logoText">🎰 PISO<span>PALARO</span></div>
       <p class="tag" id="tagLine">Get your lucky numbers — only ₱1 each!</p>
       <div class="pill" id="priceTag">₱1.00 PER ENTRY</div>
-      <div class="pool-badge" id="buyersBadge">👥 <span id="uniqueBuyersCount">0</span> Buyers</div>
+      <div class="pool-badge" id="buyersBadge">👥 <span class="buyer-num" id="uniqueBuyersCount">0</span> Buyers</div>
     </header>
     <div class="draw-banner" id="drawBanner"><div class="db-label">🎯 Draw Date</div><div class="db-date" id="drawDateText"></div></div>
     <div class="announce-banner" id="announceBanner"><span style="font-size:1.2rem;margin-right:6px">📢</span><span id="announceText"></span></div>
@@ -437,11 +415,16 @@ footer{text-align:center;padding:24px 0 16px;color:var(--sub);font-size:.72rem;l
           <div class="fg"><label id="qtyLabel">Total Quantity <span style="font-weight:400;text-transform:none;color:var(--sub)">(min <span id="minQtySpan">100</span>)</span></label><input id="fQ" type="number" min="100" max="10000" placeholder="Or type manually"></div>
           <div class="tot"><div class="tl">Total</div><div class="tv" id="dT">₱ 0.00</div></div>
           <div class="stock-check-banner" id="stockBanner"></div>
-          <button class="btn b1" id="continueBtn" onclick="go2()">Continue to Payment →</button>
+          <button class="btn b1" id="continueBtn" onclick="go2()">Reserve Numbers →</button>
         </div>
 
         <div id="p2" class="hide">
           <div class="ct">💳 GCash Payment</div>
+          <div class="reserved-banner" id="reservedBanner">
+            ✅ <strong><span id="reservedQty">0</span> numbers have been reserved for you!</strong>
+            <br>Send the exact amount below, then enter your GCash reference number.
+            <br><span class="res-txid">TX: <span id="reservedTxId"></span></span>
+          </div>
           <div class="gc">
             <div class="gc-h"><div class="gc-b">GCash</div> Send To:</div>
             <div style="line-height:2.2">
@@ -461,8 +444,8 @@ footer{text-align:center;padding:24px 0 16px;color:var(--sub);font-size:.72rem;l
             <div class="field-err" id="gcashRefErr"></div>
           </div>
           <div class="gcash-dupe-warn" id="gcashDupeWarn">⚠️ <strong>This GCash Reference Number may have already been used.</strong> Please double-check your reference number before submitting.</div>
-          <button class="btn b1" id="buyBtn" onclick="submitPurchase()">✓ Confirm Entry</button>
-          <button class="btn b2" onclick="go1()">← Back</button>
+          <button class="btn b1" id="buyBtn" onclick="submitGcashRef()">✓ Submit GCash Reference</button>
+          <button class="btn b2" onclick="cancelReservation()">← Cancel Reservation</button>
         </div>
       </div>
     </div>
@@ -680,10 +663,10 @@ footer{text-align:center;padding:24px 0 16px;color:var(--sub);font-size:.72rem;l
               <input id="setPoolSize" type="number" min="10000" max="200000" step="10000" placeholder="e.g. 200000">
               <div class="pool-help">
                 <strong>How it works:</strong><br>
-                <code>10,000</code> → 5-digit numbers: <code>00000</code>–<code>09999</code> (1st digit always 0)<br>
-                <code>20,000</code> → 5-digit numbers: <code>00000</code>–<code>19999</code> (1st digit 0 or 1)<br>
-                <code>100,000</code> → 6-digit numbers: <code>000000</code>–<code>099999</code> (1st digit always 0)<br>
-                <code>200,000</code> → 6-digit numbers: <code>000000</code>–<code>199999</code> (1st digit 0 or 1)<br>
+                <code>10,000</code> → 5-digit numbers: <code>00000</code>–<code>09999</code><br>
+                <code>20,000</code> → 5-digit numbers: <code>00000</code>–<code>19999</code><br>
+                <code>100,000</code> → 6-digit numbers: <code>000000</code>–<code>099999</code><br>
+                <code>200,000</code> → 6-digit numbers: <code>000000</code>–<code>199999</code><br>
                 Min: <code>10,000</code> · Max: <code>200,000</code> · Must be multiple of <code>10,000</code>
               </div>
               <div class="pool-preview" id="poolPreview"></div>
@@ -716,6 +699,9 @@ let currentPage={tx:1,num:1},IS_ADMIN_MODE=false;
 let _detailTx=null,_art=null,_kat=null,activeP='dashboard';
 let _purchaseInProgress=false,isSoldOut=false,logoLoaded=false;
 let _lastStockCheck={remaining:null,time:0};
+
+// Reserve-then-pay state
+let _reservedTx=null; // holds {txId, quantity, amount, numbers, timestamp} after reservation
 
 const $=id=>document.getElementById(id);
 const show=id=>$(id).classList.remove('hide');
@@ -761,8 +747,6 @@ function getPoolRange(){
 
 function updatePoolDisplay(){
   const r=getPoolRange();
-  const badge=$('poolBadge');
-  if(badge)badge.textContent='🎱 Pool: '+r.min+'–'+r.max+' ('+TOTAL_POOL.toLocaleString()+' numbers)';
   const hint=$('numFormatHint');
   if(hint)hint.textContent=r.min+'–'+r.max;
   const shint=$('searchNumHint');
@@ -868,12 +852,17 @@ function formatDrawDate(s){
 }
 const setTodayDate=()=>$('dateToday').textContent=new Date().toLocaleDateString('en-PH',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
 
+function updateBuyersBadge(count){
+  const el=$('uniqueBuyersCount');
+  if(el)el.textContent=(+count||0).toLocaleString();
+}
+
 function applySoldOutState(sold,remaining){
   isSoldOut=remaining<=0&&sold>=TOTAL_POOL;
   const banner=$('soldOutBanner');
   const buyBtns=document.querySelectorAll('#continueBtn');
   const qpBtns=document.querySelectorAll('.qp-btn');
-  const inputs=['fQ','fN','fP','fR'].map($);
+  const inputs=['fQ','fN','fP'].map($);
   if(isSoldOut){
     banner?.classList.add('on');
     buyBtns.forEach(b=>{b.classList.add('sold-out');b.disabled=true;b.textContent='🚫 SOLD OUT';});
@@ -881,14 +870,13 @@ function applySoldOutState(sold,remaining){
     inputs.forEach(i=>i&&(i.classList.add('sold-out'),i.disabled=true));
   } else {
     banner?.classList.remove('on');
-    buyBtns.forEach(b=>{b.classList.remove('sold-out');b.disabled=false;b.textContent='Continue to Payment →';});
+    buyBtns.forEach(b=>{b.classList.remove('sold-out');b.disabled=false;b.textContent='Reserve Numbers →';});
     qpBtns.forEach(b=>b.classList.remove('sold-out'));
     inputs.forEach(i=>i&&(i.classList.remove('sold-out'),i.disabled=false));
   }
 }
 
 function applyPublicSettings(s){
-  // Apply pool size FIRST so all number formatting is correct
   if(s.total_pool&&parseInt(s.total_pool)>=POOL_MIN){
     applyPoolConfig(parseInt(s.total_pool));
   }
@@ -949,10 +937,7 @@ function updateProgress(sold,rem,total){
     $('priceTag').style.background=$('priceTag').style.color='';
   }
 }
-function updateBuyersBadge(count){
-  const el=$('uniqueBuyersCount');
-  if(el)el.textContent=(+count||0).toLocaleString();
-}
+
 function checkConnection(){
   const bar=$('connBar'),txt=$('connTxt'),ep=$('errPanel');
   bar.className='conn checking';txt.textContent='Connecting...';ep.classList.add('hide');
@@ -965,7 +950,7 @@ function checkConnection(){
       if(h.pool&&h.pool>=POOL_MIN)applyPoolConfig(h.pool);
     }
     if(s?.success)applyPublicSettings(s);
-        if(st?.success){
+    if(st?.success){
       updateProgress(st.sold,st.remaining,st.total);
       if(st.uniqueBuyers!==undefined)updateBuyersBadge(st.uniqueBuyers);
     }
@@ -974,72 +959,6 @@ function checkConnection(){
     txt.textContent='✗ '+(err.message==='TIMEOUT'?'Timed out':err.message);
     $('errDetail').innerHTML='<button class="retry-btn" onclick="checkConnection()">🔄 Retry</button>';
     ep.classList.remove('hide');
-  });
-}
-
-// ═══════════════ STOCK VERIFICATION ═══════════════
-
-function verifyStock(requestedQty){
-  return new Promise((resolve,reject)=>{
-    const banner=$('stockBanner');
-    const btn=$('continueBtn');
-    btn.disabled=true;
-    banner.className='stock-check-banner checking';
-    banner.innerHTML='<div class="sp-sm"></div> Verifying availability for '+requestedQty.toLocaleString()+' numbers...';
-
-    safeFetch(SCRIPT_URL+'?action=stats&_t='+Date.now(),20000)
-      .then(st=>{
-        if(!st||!st.success){
-          banner.className='stock-check-banner fail';
-          banner.textContent='⚠️ Could not verify stock. Please try again.';
-          btn.disabled=false;
-          reject(new Error('Stock check failed'));
-          return;
-        }
-
-        updateProgress(st.sold,st.remaining,st.total);
-
-        if(st.remaining<=0){
-          banner.className='stock-check-banner fail';
-          banner.textContent='🚫 All numbers have been sold out!';
-          btn.disabled=false;
-          reject(new Error('SOLD_OUT'));
-          return;
-        }
-
-        if(requestedQty>st.remaining){
-          banner.className='stock-check-banner fail';
-          banner.innerHTML='⚠️ Only <strong>'+st.remaining.toLocaleString()+'</strong> numbers remaining. You requested <strong>'+requestedQty.toLocaleString()+'</strong>. Please reduce your quantity.';
-          btn.disabled=false;
-          reject(new Error('INSUFFICIENT: '+st.remaining));
-          return;
-        }
-
-        banner.className='stock-check-banner ok';
-        banner.innerHTML='✅ <strong>'+st.remaining.toLocaleString()+'</strong> numbers available. Proceeding to payment...';
-        btn.disabled=false;
-
-        setTimeout(()=>{banner.style.display='none';},2000);
-        resolve(st);
-      })
-      .catch(err=>{
-        // If offline, allow proceeding with cached data if recent
-        const age=Date.now()-_lastStockCheck.time;
-        if(_lastStockCheck.remaining!==null&&age<60000){
-          if(requestedQty<=_lastStockCheck.remaining){
-            banner.className='stock-check-banner ok';
-            banner.innerHTML='✅ Using cached data: ~'+_lastStockCheck.remaining.toLocaleString()+' available (checked '+Math.round(age/1000)+'s ago)';
-            btn.disabled=false;
-            setTimeout(()=>{banner.style.display='none';},2000);
-            resolve({remaining:_lastStockCheck.remaining});
-            return;
-          }
-        }
-        banner.className='stock-check-banner fail';
-        banner.textContent='⚠️ Cannot verify stock: '+(err.message==='TIMEOUT'?'Server timed out':err.message)+'. Please try again.';
-        btn.disabled=false;
-        reject(err);
-      });
   });
 }
 
@@ -1108,97 +1027,155 @@ function stpSet(n){
   $('l2').className=n>=3?'sln on':'sln';
 }
 
+// ═══════════════ RESERVE-THEN-PAY FLOW ═══════════════
+
 function go2(){
   if(isSoldOut)return toast('🚫 All numbers are sold out!','err');
+  if(_purchaseInProgress)return toast('Already processing...','warn');
   const nm=sanitizeInput($('fN').value,MAX_NAME_LEN),ph=$('fP').value.trim(),qt=parseInt($('fQ').value);
   if(!nm||nm.length<2)return toast('Enter full name.','err');
   if(!isValidPhone(ph))return toast('Phone: 11 digits starting with 09.','err');
   if(!qt||qt<MIN_QTY){$('fQ').value=MIN_QTY;calc();return toast('Min '+MIN_QTY+'.','err');}
   if(qt>MAX_QTY){$('fQ').value=MAX_QTY;calc();return toast('Max '+MAX_QTY.toLocaleString()+'.','err');}
-
-  // ═══ STOCK VERIFICATION before proceeding to payment ═══
-  verifyStock(qt).then(()=>{
-    hide('p1');show('p2');
-    $('dA').textContent=' ₱ '+(qt*PRICE_PER).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
-    stpSet(2);
-    scrollTo({top:0,behavior:'smooth'});
-  }).catch(err=>{
-    if(err.message==='SOLD_OUT'){
-      applySoldOutState(TOTAL_POOL,0);
-    } else if(err.message.startsWith('INSUFFICIENT:')){
-      const avail=parseInt(err.message.split(':')[1]);
-      if(avail>0&&avail>=MIN_QTY){
-        toast('Only '+avail.toLocaleString()+' left. Adjusted.','warn');
-        $('fQ').value=avail;calc();
-      }
-    }
-    // Banner already shows the error
-  });
-}
-
-function go1(){hide('p2');show('p1');stpSet(1);$('gcashDupeWarn').classList.remove('on');$('stockBanner').style.display='none';}
-
-function submitPurchase(){
-  if(_purchaseInProgress)return toast('Already processing...','warn');
-  if(isSoldOut)return toast('🚫 All numbers are sold out!','err');
-  const ref=$('fR').value.trim();
-  if(!ref)return toast('Enter GCash ref.','err');
-  if(!/^\d{1,13}$/.test(ref))return toast('Digits only (max 13).','err');
   if(!serverOnline){toast('Offline. Reconnecting...','err');checkConnection();return;}
-  const nm=sanitizeInput($('fN').value,MAX_NAME_LEN);
-  const ph=getDigitsOnly($('fP').value).substring(0,11);
-  const qt=parseInt($('fQ').value);
-  if(!nm||nm.length<2)return toast('Invalid name.','err');
-  if(!isValidPhone(ph))return toast('Invalid phone.','err');
-  if(!qt||qt<MIN_QTY||qt>MAX_QTY)return toast('Invalid quantity.','err');
-  $('buyBtn').disabled=true;_purchaseInProgress=true;
-  attemptPurchase(nm,ph,qt,ref,0);
+
+  // Reserve numbers immediately (no GCash ref yet)
+  _purchaseInProgress=true;
+  $('continueBtn').disabled=true;
+  const banner=$('stockBanner');
+  banner.className='stock-check-banner checking';
+  banner.innerHTML='<div class="sp-sm"></div> Reserving '+qt.toLocaleString()+' numbers...';
+
+  attemptReserve(nm,getDigitsOnly(ph).substring(0,11),qt,0);
 }
 
-function attemptPurchase(nm,ph,qt,ref,tryN){
-  if(tryN===0)showOv('Generating '+qt.toLocaleString()+' numbers...','Please wait — this may take a moment');
-  else{showOv('Retry '+tryN+'/'+MAX_RETRY,'Retrying in a moment...');setTimeout(()=>doAttemptPurchase(nm,ph,qt,ref,tryN),RETRY_MS[tryN-1]);return;}
-  doAttemptPurchase(nm,ph,qt,ref,tryN);
+function attemptReserve(nm,ph,qt,tryN){
+  if(tryN===0)showOv('Reserving '+qt.toLocaleString()+' numbers...','Please wait — this may take a moment');
+  else{showOv('Retry '+tryN+'/'+MAX_RETRY,'Retrying in a moment...');setTimeout(()=>doAttemptReserve(nm,ph,qt,tryN),RETRY_MS[tryN-1]);return;}
+  doAttemptReserve(nm,ph,qt,tryN);
 }
 
-function doAttemptPurchase(nm,ph,qt,ref,tryN){
-  const params=new URLSearchParams({action:'purchase',quantity:qt,name:nm,phone:ph,gcashRef:ref});
+function doAttemptReserve(nm,ph,qt,tryN){
+  const params=new URLSearchParams({action:'purchase',quantity:qt,name:nm,phone:ph,gcashRef:'PENDING'});
   safeFetch(SCRIPT_URL+'?'+params,FETCH_TIMEOUT)
     .then(d=>{
       if(d.success){
-        hideOv();$('buyBtn').disabled=false;_purchaseInProgress=false;
-        myNums=d.numbers.map(n=>padNum(n));
+        hideOv();_purchaseInProgress=false;$('continueBtn').disabled=false;
+        $('stockBanner').style.display='none';
+
+        // Store reservation
+        _reservedTx={
+          txId:d.transactionId,
+          quantity:d.quantity,
+          amount:d.amount,
+          numbers:d.numbers.map(n=>padNum(n)),
+          timestamp:d.timestamp,
+          name:nm,
+          phone:ph
+        };
+        myNums=_reservedTx.numbers;
+
         if(d.pool&&d.pool>=POOL_MIN)applyPoolConfig(d.pool);
-        showResult(d,nm,ph,qt,ref);
-        toast('⏳ '+d.quantity.toLocaleString()+' numbers reserved!','warn');
+
+        // Show payment step
+        hide('p1');show('p2');
+        $('reservedQty').textContent=d.quantity.toLocaleString();
+        $('reservedTxId').textContent=d.transactionId;
+        $('dA').textContent=' ₱ '+(d.amount).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+        stpSet(2);
+        scrollTo({top:0,behavior:'smooth'});
+        toast('✅ '+d.quantity.toLocaleString()+' numbers reserved!','suc');
       } else if(d.retryable&&tryN<MAX_RETRY){
-        attemptPurchase(nm,ph,qt,ref,tryN+1);
+        attemptReserve(nm,ph,qt,tryN+1);
       } else {
-        hideOv();$('buyBtn').disabled=false;_purchaseInProgress=false;
+        hideOv();_purchaseInProgress=false;$('continueBtn').disabled=false;
+        const banner=$('stockBanner');
+        banner.className='stock-check-banner fail';
+        banner.textContent='⚠️ '+(d.error||'Failed to reserve numbers.');
         toast(d.error||'Failed.','err');
         if(d.error&&(d.error.includes('0 numbers left')||d.error.includes('Only 0')))updateProgress(TOTAL_POOL,0);
         if(d.error&&d.error.toLowerCase().includes('gcash reference')){
-          $('gcashDupeWarn').classList.add('on');
-          $('gcashDupeWarn').innerHTML='⚠️ <strong>'+esc(d.error)+'</strong>';
+          // Should not happen with PENDING ref, but handle gracefully
         }
         if(!d.retryable)checkConnection();
       }
     })
     .catch(err=>{
-      if(tryN<MAX_RETRY)attemptPurchase(nm,ph,qt,ref,tryN+1);
-      else{hideOv();$('buyBtn').disabled=false;_purchaseInProgress=false;toast(err.message,'err');serverOnline=false;checkConnection();}
+      if(tryN<MAX_RETRY)attemptReserve(nm,ph,qt,tryN+1);
+      else{
+        hideOv();_purchaseInProgress=false;$('continueBtn').disabled=false;
+        $('stockBanner').className='stock-check-banner fail';
+        $('stockBanner').textContent='⚠️ Connection error: '+err.message;
+        toast(err.message,'err');serverOnline=false;checkConnection();
+      }
     });
+}
+
+function submitGcashRef(){
+  if(!_reservedTx){toast('No reservation found. Please start over.','err');return;}
+  const ref=$('fR').value.trim();
+  if(!ref)return toast('Enter GCash reference number.','err');
+  if(!/^\d{1,13}$/.test(ref))return toast('Digits only (max 13).','err');
+  if(!serverOnline){toast('Offline. Reconnecting...','err');checkConnection();return;}
+
+  $('buyBtn').disabled=true;
+  showOv('Submitting GCash reference...','');
+
+  const params=new URLSearchParams({
+    action:'updateGcashRef',
+    transactionId:_reservedTx.txId,
+    gcashRef:ref
+  });
+
+  safeFetch(SCRIPT_URL+'?'+params,60000)
+    .then(d=>{
+      hideOv();$('buyBtn').disabled=false;
+      if(d.success){
+        showResult(_reservedTx,ref);
+        toast('⏳ GCash reference submitted!','warn');
+        _reservedTx=null;
+      } else {
+        toast(d.error||'Failed to submit reference.','err');
+        if(d.error&&d.error.toLowerCase().includes('gcash reference')){
+          $('gcashDupeWarn').classList.add('on');
+          $('gcashDupeWarn').innerHTML='⚠️ <strong>'+esc(d.error)+'</strong>';
+        }
+      }
+    })
+    .catch(err=>{
+      hideOv();$('buyBtn').disabled=false;
+      toast('Error: '+err.message,'err');
+    });
+}
+
+function cancelReservation(){
+  if(!_reservedTx){go1();return;}
+  // The reservation stays as PENDING with gcashRef=PENDING
+  // Admin can decline it later. User just goes back.
+  const txId=_reservedTx.txId;
+  _reservedTx=null;myNums=[];
+  go1();
+  toast('Reservation cancelled. TX '+txId+' will expire.','warn');
+}
+
+function go1(){
+  hide('p2');show('p1');stpSet(1);
+  $('gcashDupeWarn').classList.remove('on');
+  $('stockBanner').style.display='none';
+  $('fR').value='';
+  $('gcashRefErr').style.display='none';
+  $('fR').style.borderColor='rgba(255,255,255,.1)';
 }
 
 const censorName=n=>n.trim().split(/\s+/).map((w,i)=>i===0?w:w[0]+'*'.repeat(w.length-1)).join(' ');
 const censorPhone=p=>p&&p.length>=4?'*'.repeat(p.length-4)+p.slice(-4):(p||'');
 
-function showResult(d,nm,ph,qt,ref){
+function showResult(resTx,ref){
   hide('secB');show('secR');stpSet(3);
-  $('rI').textContent=d.transactionId;$('rD').textContent=d.timestamp;
-  $('rN').textContent=censorName(nm);$('rP').textContent=censorPhone(ph);
-  $('rQ').textContent=d.quantity.toLocaleString();
-  $('rA').textContent='₱ '+Number(d.amount).toLocaleString(undefined,{minimumFractionDigits:2});
+  $('rI').textContent=resTx.txId;$('rD').textContent=resTx.timestamp;
+  $('rN').textContent=censorName(resTx.name);$('rP').textContent=censorPhone(resTx.phone);
+  $('rQ').textContent=resTx.quantity.toLocaleString();
+  $('rA').textContent='₱ '+Number(resTx.amount).toLocaleString(undefined,{minimumFractionDigits:2});
   $('rR').textContent=ref;$('rS').textContent='⏳ PENDING';
   $('rC').textContent=myNums.length.toLocaleString();
   const frag=document.createDocumentFragment();
@@ -1236,7 +1213,7 @@ function again(){
   $('gcashDupeWarn').classList.remove('on');
   $('stockBanner').style.display='none';
   hide('p2');show('p1');stpSet(1);
-  myNums=[];_purchaseInProgress=false;
+  myNums=[];_purchaseInProgress=false;_reservedTx=null;
   scrollTo({top:0,behavior:'smooth'});checkConnection();
 }
 
@@ -1673,4 +1650,3 @@ document.addEventListener('DOMContentLoaded',()=>{
 </script>
 </body>
 </html>
-
