@@ -40,6 +40,16 @@ header{text-align:center;padding:30px 0 8px}
 .sold-out-banner.on{display:block}
 .pending-notice{background:linear-gradient(135deg,rgba(255,171,0,.1),rgba(255,171,0,.03));border:1px solid rgba(255,171,0,.2);font-size:.85rem;color:var(--pend);margin:12px 0}
 
+/* ── Stock check banner ── */
+.stock-check-banner{border-radius:var(--r);padding:14px 18px;margin:14px 0;line-height:1.7;display:none}
+.stock-check-banner.checking{display:flex;align-items:center;gap:10px;background:rgba(255,215,0,.06);border:1px solid rgba(255,215,0,.12);color:var(--gold);font-size:.85rem}
+.stock-check-banner.ok{display:block;background:rgba(0,230,118,.06);border:1px solid rgba(0,230,118,.15);color:var(--ok);font-size:.85rem}
+.stock-check-banner.fail{display:block;background:rgba(255,59,59,.06);border:1px solid rgba(255,59,59,.15);color:var(--err);font-size:.85rem}
+.stock-check-banner .sp-sm{width:16px;height:16px;border:2px solid rgba(255,215,0,.15);border-top-color:var(--gold);border-radius:50%;animation:spin .6s linear infinite;flex-shrink:0}
+
+/* ── Pool info badge ── */
+.pool-badge{display:inline-flex;align-items:center;gap:6px;margin-top:6px;padding:4px 14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:20px;font-size:.72rem;color:var(--sub);font-family:'JetBrains Mono',monospace;letter-spacing:1px}
+
 /* ── Maintenance overlays ── */
 .maint-overlay{display:none;position:fixed;inset:0;background:rgba(6,9,25,.97);z-index:9998;justify-content:center;align-items:center;flex-direction:column;text-align:center;padding:20px}
 .maint-overlay.on{display:flex}
@@ -259,6 +269,11 @@ tr:hover td{background:rgba(255,215,0,.02)}
 .feed li:last-child{border-bottom:none}
 .feed .time{color:var(--sub);font-size:.7rem;font-family:'JetBrains Mono',monospace;white-space:nowrap}
 
+/* ── Pool size help ── */
+.pool-help{font-size:.72rem;color:var(--sub);margin-top:6px;line-height:1.6;padding:8px 10px;background:rgba(255,255,255,.03);border-radius:6px;border:1px solid rgba(255,255,255,.05)}
+.pool-help code{background:rgba(0,0,0,.3);padding:1px 6px;border-radius:3px;font-family:'JetBrains Mono',monospace;color:var(--gold);font-size:.7rem}
+.pool-preview{margin-top:8px;padding:10px 14px;background:rgba(255,215,0,.04);border:1px solid rgba(255,215,0,.1);border-radius:8px;font-size:.78rem;color:var(--gold);font-family:'JetBrains Mono',monospace}
+
 /* ── Modals ── */
 .confirm-modal,.detail-modal{display:none;position:fixed;inset:0;background:rgba(6,9,25,.92);z-index:10000;justify-content:center;align-items:center;padding:20px;overflow-y:auto}
 .confirm-modal.on,.detail-modal.on{display:flex}
@@ -367,6 +382,7 @@ footer{text-align:center;padding:24px 0 16px;color:var(--sub);font-size:.72rem;l
       <div class="logo" id="logoText">🎰 PISO<span>PALARO</span></div>
       <p class="tag" id="tagLine">Get your lucky numbers — only ₱1 each!</p>
       <div class="pill" id="priceTag">₱1.00 PER ENTRY</div>
+      <div class="pool-badge" id="poolBadge">🎱 Pool: 000000–199999 (200,000 numbers)</div>
     </header>
     <div class="draw-banner" id="drawBanner"><div class="db-label">🎯 Draw Date</div><div class="db-date" id="drawDateText"></div></div>
     <div class="announce-banner" id="announceBanner"><span style="font-size:1.2rem;margin-right:6px">📢</span><span id="announceText"></span></div>
@@ -409,7 +425,7 @@ footer{text-align:center;padding:24px 0 16px;color:var(--sub);font-size:.72rem;l
           </div>
           <div class="qp-wrap">
             <div class="qp-label">Quick Pick <span class="qp-reset" onclick="resetQty()">✕ Reset</span></div>
-            <div class="qp-grid">
+            <div class="qp-grid" id="qpGrid">
               <button class="qp-btn" onclick="addQty(100,this)">+100</button>
               <button class="qp-btn" onclick="addQty(200,this)">+200</button>
               <button class="qp-btn" onclick="addQty(500,this)">+500</button>
@@ -420,7 +436,8 @@ footer{text-align:center;padding:24px 0 16px;color:var(--sub);font-size:.72rem;l
           </div>
           <div class="fg"><label id="qtyLabel">Total Quantity <span style="font-weight:400;text-transform:none;color:var(--sub)">(min <span id="minQtySpan">100</span>)</span></label><input id="fQ" type="number" min="100" max="10000" placeholder="Or type manually"></div>
           <div class="tot"><div class="tl">Total</div><div class="tv" id="dT">₱ 0.00</div></div>
-          <button class="btn b1" onclick="go2()">Continue to Payment →</button>
+          <div class="stock-check-banner" id="stockBanner"></div>
+          <button class="btn b1" id="continueBtn" onclick="go2()">Continue to Payment →</button>
         </div>
 
         <div id="p2" class="hide">
@@ -534,7 +551,7 @@ footer{text-align:center;padding:24px 0 16px;color:var(--sub);font-size:.72rem;l
             <a href="#" onclick="goToPublicPage();return false" class="pub-link-btn">🎰 Public Page ↗</a>
           </div>
           <div class="stats">
-            <div class="stat gold"><div class="sl">Total Sold</div><div class="sv" id="dsSold">—</div><div class="bar-track"><div class="bar-fill" id="dsBar" style="width:0"></div></div></div>
+            <div class="stat gold"><div class="sl">Total Sold</div><div class="sv" id="dsSold">—</div><div class="sc" id="dsPoolInfo" style="color:var(--sub)">Pool: —</div><div class="bar-track"><div class="bar-fill" id="dsBar" style="width:0"></div></div></div>
             <div class="stat green"><div class="sl">Remaining</div><div class="sv" id="dsRemain">—</div><div class="sc" id="dsPct" style="color:var(--ok)">—</div></div>
             <div class="stat blue"><div class="sl">Revenue (Approved)</div><div class="sv" id="dsRevenue">—</div></div>
             <div class="stat yellow"><div class="sl">Pending</div><div class="sv" id="dsPending">—</div></div>
@@ -570,7 +587,7 @@ footer{text-align:center;padding:24px 0 16px;color:var(--sub);font-size:.72rem;l
 
         <div class="page" id="pg-numbers">
           <div class="page-title">Sold Numbers</div>
-          <div class="page-sub">Click any row to view transaction details. Format: 000000–199999</div>
+          <div class="page-sub">Click any row to view transaction details. Format: <span id="numFormatHint">000000–199999</span></div>
           <div class="tbl-wrap">
             <div class="tbl-head">
               <h3>🔢 Registry</h3>
@@ -591,9 +608,9 @@ footer{text-align:center;padding:24px 0 16px;color:var(--sub);font-size:.72rem;l
           <div class="page-title">Search</div>
           <div class="page-sub">Click any result to view full transaction details</div>
           <div class="tool-card">
-            <h3>🔍 By Number <span style="font-size:.7rem;color:var(--sub);font-weight:400">(000000–199999)</span></h3>
+            <h3>🔍 By Number <span style="font-size:.7rem;color:var(--sub);font-weight:400" id="searchNumHint">(000000–199999)</span></h3>
             <div class="tool-row">
-              <div class="fg"><label>6-Digit Number</label><input id="searchNum" maxlength="6" placeholder="042069" inputmode="numeric"></div>
+              <div class="fg"><label>Number</label><input id="searchNum" maxlength="6" placeholder="042069" inputmode="numeric"></div>
               <button class="btn-sm btn-gold" onclick="searchNumber()" style="height:42px">Search</button>
             </div>
             <div class="search-loading" id="sl1"><div class="sp-sm"></div> Searching...</div>
@@ -621,11 +638,11 @@ footer{text-align:center;padding:24px 0 16px;color:var(--sub);font-size:.72rem;l
 
         <div class="page" id="pg-tools">
           <div class="page-title">Tools</div>
-          <div class="page-sub">Manual operations (numbers must be 000000–199999)</div>
+          <div class="page-sub">Manual operations (numbers must be within pool range)</div>
           <div class="tool-card">
             <h3>➕ Add Number</h3>
             <div class="tool-row">
-              <div class="fg"><label>Number (1st digit 0 or 1)</label><input id="addNum" maxlength="6" placeholder="042069" inputmode="numeric"></div>
+              <div class="fg"><label>Number <span style="font-weight:400;text-transform:none" id="addNumHint">(000000–199999)</span></label><input id="addNum" maxlength="6" placeholder="042069" inputmode="numeric"></div>
               <div class="fg"><label>Name</label><input id="addName" placeholder="Optional"></div>
               <div class="fg"><label>Phone</label><input id="addPhone" maxlength="11" placeholder="Optional"></div>
               <button class="btn-sm btn-green" onclick="addNumber()" style="height:42px">Add</button>
@@ -656,6 +673,22 @@ footer{text-align:center;padding:24px 0 16px;color:var(--sub);font-size:.72rem;l
             <div class="setting-group"><h3>🔢 Limits</h3><div class="fg"><label>Price (₱)</label><input id="setPrice" type="number" min="1"></div><div class="fg"><label>Min Qty</label><input id="setMinQty" type="number" min="1"></div><div class="fg"><label>Max Qty</label><input id="setMaxQty" type="number" min="1"></div></div>
             <div class="setting-group"><h3>📢 Announcement</h3><div class="fg"><label>Message</label><textarea id="setAnnouncement" placeholder="Blank = hidden"></textarea></div><div class="fg"><label>Maintenance</label><select id="setMaintenance"><option value="false">Off</option><option value="true">On</option></select></div></div>
           </div>
+          <div class="setting-group">
+            <h3>🎱 Number Pool</h3>
+            <div class="fg">
+              <label>Pool Size</label>
+              <input id="setPoolSize" type="number" min="10000" max="200000" step="10000" placeholder="e.g. 200000">
+              <div class="pool-help">
+                <strong>How it works:</strong><br>
+                <code>10,000</code> → 5-digit numbers: <code>00000</code>–<code>09999</code> (1st digit always 0)<br>
+                <code>20,000</code> → 5-digit numbers: <code>00000</code>–<code>19999</code> (1st digit 0 or 1)<br>
+                <code>100,000</code> → 6-digit numbers: <code>000000</code>–<code>099999</code> (1st digit always 0)<br>
+                <code>200,000</code> → 6-digit numbers: <code>000000</code>–<code>199999</code> (1st digit 0 or 1)<br>
+                Min: <code>10,000</code> · Max: <code>200,000</code> · Must be multiple of <code>10,000</code>
+              </div>
+              <div class="pool-preview" id="poolPreview"></div>
+            </div>
+          </div>
           <div class="setting-group"><h3>🔐 Password</h3>
             <div class="settings-grid">
               <div class="fg"><label>New</label><input id="setNewPass" type="password" placeholder="Min 6"><small style="color:var(--sub)">Blank = keep current</small></div>
@@ -672,25 +705,97 @@ footer{text-align:center;padding:24px 0 16px;color:var(--sub);font-size:.72rem;l
 
 <script>
 const SCRIPT_URL='https://script.google.com/macros/s/AKfycbwq7grZ-IzjEUPj_Nz9MBdwzo6Lb_VrKCvAEFMKh8mtWCYQ2SH6meyiAuKNfwVNlav5MA/exec';
-const ADMIN_SECRET='admin',TOTAL_POOL=200000,MAX_RETRY=3,RETRY_MS=[3000,5000,8000],FETCH_TIMEOUT=120000,MAX_NAME_LEN=40;
+const ADMIN_SECRET='admin',MAX_RETRY=3,RETRY_MS=[3000,5000,8000],FETCH_TIMEOUT=120000,MAX_NAME_LEN=40;
+const POOL_MIN=10000,POOL_MAX=200000;
 
+let TOTAL_POOL=200000,NUM_DIGITS=6,NUM_MAX_FIRST_DIGIT=1;
 let GCASH_NUMBER='09171234567',GCASH_NAME='Juan Dela Cruz';
 let PRICE_PER=1,MIN_QTY=100,MAX_QTY=10000,LOTTERY_NAME='PISO PALARO';
 let myNums=[],serverOnline=false,TOKEN='';
 let currentPage={tx:1,num:1},IS_ADMIN_MODE=false;
 let _detailTx=null,_art=null,_kat=null,activeP='dashboard';
 let _purchaseInProgress=false,isSoldOut=false,logoLoaded=false;
+let _lastStockCheck={remaining:null,time:0};
 
 const $=id=>document.getElementById(id);
 const show=id=>$(id).classList.remove('hide');
 const hide=id=>$(id).classList.add('hide');
-const pad6=n=>String(n).padStart(6,'0').substring(0,6);
 const getDigitsOnly=s=>String(s).replace(/\D/g,'');
 const isValidPhone=s=>{const d=getDigitsOnly(s);return d.length===11&&d.startsWith('09');};
-const isValidNumber=n=>/^\d{6}$/.test(n)&&parseInt(n[0])<=1;
+
+// ═══════════════ DYNAMIC NUMBER FORMATTING ═══════════════
+
+function computePoolParams(pool){
+  pool=Math.max(POOL_MIN,Math.min(POOL_MAX,pool||200000));
+  const digits=pool>99999?6:5;
+  const maxNum=pool-1;
+  const firstDigitMax=parseInt(String(maxNum)[0]);
+  return{pool,digits,firstDigitMax,maxNum};
+}
+
+function applyPoolConfig(pool){
+  const p=computePoolParams(pool);
+  TOTAL_POOL=p.pool;NUM_DIGITS=p.digits;NUM_MAX_FIRST_DIGIT=p.firstDigitMax;
+  updatePoolDisplay();
+}
+
+function padNum(n){
+  const s=String(n).replace(/\D/g,'');
+  return s.padStart(NUM_DIGITS,'0').substring(0,NUM_DIGITS);
+}
+
+function isValidNumber(n){
+  if(!n)return false;
+  const s=padNum(n);
+  if(s.length!==NUM_DIGITS)return false;
+  if(!/^\d+$/.test(s))return false;
+  const num=parseInt(s,10);
+  return num>=0&&num<TOTAL_POOL;
+}
+
+function getPoolRange(){
+  const min='0'.repeat(NUM_DIGITS);
+  const max=padNum(TOTAL_POOL-1);
+  return{min,max};
+}
+
+function updatePoolDisplay(){
+  const r=getPoolRange();
+  const badge=$('poolBadge');
+  if(badge)badge.textContent='🎱 Pool: '+r.min+'–'+r.max+' ('+TOTAL_POOL.toLocaleString()+' numbers)';
+  const hint=$('numFormatHint');
+  if(hint)hint.textContent=r.min+'–'+r.max;
+  const shint=$('searchNumHint');
+  if(shint)shint.textContent='('+r.min+'–'+r.max+')';
+  const ahint=$('addNumHint');
+  if(ahint)ahint.textContent='('+r.min+'–'+r.max+')';
+  const sn=$('searchNum');
+  if(sn){sn.maxLength=NUM_DIGITS;sn.placeholder=r.min.substring(0,NUM_DIGITS-4)+'4206'+'9'.repeat(Math.max(0,NUM_DIGITS-5));}
+  const an=$('addNum');
+  if(an){an.maxLength=NUM_DIGITS;an.placeholder=sn?sn.placeholder:r.min;}
+  const rn=$('removeNum');
+  if(rn)rn.maxLength=NUM_DIGITS;
+}
+
+function updatePoolPreview(){
+  const v=parseInt($('setPoolSize')?.value);
+  const el=$('poolPreview');
+  if(!el)return;
+  if(!v||v<POOL_MIN||v>POOL_MAX||v%10000!==0){
+    el.textContent=v?'⚠️ Must be '+POOL_MIN.toLocaleString()+'–'+POOL_MAX.toLocaleString()+', multiple of 10,000':'Enter a pool size above';
+    el.style.color='var(--err)';return;
+  }
+  const p=computePoolParams(v);
+  const minN='0'.repeat(p.digits);
+  const maxN=String(p.maxNum).padStart(p.digits,'0');
+  el.innerHTML='✅ '+p.digits+'-digit numbers: <strong>'+minN+'</strong> – <strong>'+maxN+'</strong> ('+p.pool.toLocaleString()+' total)';
+  el.style.color='var(--ok)';
+}
+
+// ═══════════════ UTILITIES ═══════════════
 
 function esc(s){const d=document.createElement('div');d.appendChild(document.createTextNode(String(s)));return d.innerHTML;}
-function escAttr(s){return esc(s).replace(/'/g,'&#39;').replace(/\\/g,'\\\\');}
+function escAttr(s){return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/`/g,'&#96;').replace(/\\/g,'&#92;');}
 function sanitizeInput(str,maxLen){
   str=String(str||'').trim().replace(/<[^>]*>/g,'').replace(/[<>"'`;{}()\\]/g,'').replace(/[\x00-\x1F\x7F]/g,'');
   return maxLen?str.substring(0,maxLen):str;
@@ -766,7 +871,7 @@ const setTodayDate=()=>$('dateToday').textContent=new Date().toLocaleDateString(
 function applySoldOutState(sold,remaining){
   isSoldOut=remaining<=0&&sold>=TOTAL_POOL;
   const banner=$('soldOutBanner');
-  const buyBtns=document.querySelectorAll('#p1 .btn.b1,#p2 .btn.b1');
+  const buyBtns=document.querySelectorAll('#continueBtn');
   const qpBtns=document.querySelectorAll('.qp-btn');
   const inputs=['fQ','fN','fP','fR'].map($);
   if(isSoldOut){
@@ -776,16 +881,17 @@ function applySoldOutState(sold,remaining){
     inputs.forEach(i=>i&&(i.classList.add('sold-out'),i.disabled=true));
   } else {
     banner?.classList.remove('on');
-    buyBtns.forEach(b=>{b.classList.remove('sold-out');b.disabled=false;});
-    const cb=document.querySelector('#p1 .btn.b1');
-    if(cb)cb.textContent='Continue to Payment →';
-    const bb=$('buyBtn');if(bb)bb.textContent='✓ Confirm Entry';
+    buyBtns.forEach(b=>{b.classList.remove('sold-out');b.disabled=false;b.textContent='Continue to Payment →';});
     qpBtns.forEach(b=>b.classList.remove('sold-out'));
     inputs.forEach(i=>i&&(i.classList.remove('sold-out'),i.disabled=false));
   }
 }
 
 function applyPublicSettings(s){
+  // Apply pool size FIRST so all number formatting is correct
+  if(s.total_pool&&parseInt(s.total_pool)>=POOL_MIN){
+    applyPoolConfig(parseInt(s.total_pool));
+  }
   if(s.lottery_name){
     LOTTERY_NAME=String(s.lottery_name).substring(0,60);
     document.title=LOTTERY_NAME;
@@ -816,12 +922,14 @@ function applyPublicSettings(s){
   calc();
 }
 
-function updateProgress(sold,rem){
+function updateProgress(sold,rem,total){
+  if(total&&total>=POOL_MIN)applyPoolConfig(total);
   const pct=Math.max(0,Math.min(100,(rem/TOTAL_POOL)*100));
   const soldPct=TOTAL_POOL>0?(sold/TOTAL_POOL)*100:0;
   const f=$('progressFill'),t=$('availTxt');
   f.style.width=pct+'%';
   f.classList.remove('mid','low');t.classList.remove('high','mid','low');
+  _lastStockCheck={remaining:rem,time:Date.now()};
   applySoldOutState(sold,rem);
   if(isSoldOut){
     t.textContent='🚫 SOLD OUT';t.classList.add('low');f.classList.add('low');f.style.width='0%';
@@ -831,10 +939,10 @@ function updateProgress(sold,rem){
     t.textContent=(pct>10?'Running low':'Almost sold out!')+' ('+rem.toLocaleString()+')';
     t.classList.add('low');f.classList.add('low');
   } else if(pct>60){
-    t.textContent='Plenty available';t.classList.add('high');
+    t.textContent='Plenty available ('+rem.toLocaleString()+')';t.classList.add('high');
     $('priceTag').style.background=$('priceTag').style.color='';
-  } else if(pct>30){t.textContent='Selling fast';t.classList.add('mid');f.classList.add('mid');}
-  else{t.textContent='Running low';t.classList.add('low');f.classList.add('low');}
+  } else if(pct>30){t.textContent='Selling fast ('+rem.toLocaleString()+')';t.classList.add('mid');f.classList.add('mid');}
+  else{t.textContent='Running low ('+rem.toLocaleString()+')';t.classList.add('low');f.classList.add('low');}
 }
 
 function checkConnection(){
@@ -845,9 +953,11 @@ function checkConnection(){
     safeFetch(SCRIPT_URL+'?action=publicSettings',30000),
     safeFetch(SCRIPT_URL+'?action=stats',30000)
   ]).then(([h,s,st])=>{
-    if(h?.success){serverOnline=true;bar.className='conn online';txt.textContent='✓ Connected';}
+    if(h?.success){serverOnline=true;bar.className='conn online';txt.textContent='✓ Connected';
+      if(h.pool&&h.pool>=POOL_MIN)applyPoolConfig(h.pool);
+    }
     if(s?.success)applyPublicSettings(s);
-    if(st?.success)updateProgress(st.sold,st.remaining);
+    if(st?.success)updateProgress(st.sold,st.remaining,st.total);
   }).catch(err=>{
     serverOnline=false;bar.className='conn offline';
     txt.textContent='✗ '+(err.message==='TIMEOUT'?'Timed out':err.message);
@@ -855,6 +965,74 @@ function checkConnection(){
     ep.classList.remove('hide');
   });
 }
+
+// ═══════════════ STOCK VERIFICATION ═══════════════
+
+function verifyStock(requestedQty){
+  return new Promise((resolve,reject)=>{
+    const banner=$('stockBanner');
+    const btn=$('continueBtn');
+    btn.disabled=true;
+    banner.className='stock-check-banner checking';
+    banner.innerHTML='<div class="sp-sm"></div> Verifying availability for '+requestedQty.toLocaleString()+' numbers...';
+
+    safeFetch(SCRIPT_URL+'?action=stats&_t='+Date.now(),20000)
+      .then(st=>{
+        if(!st||!st.success){
+          banner.className='stock-check-banner fail';
+          banner.textContent='⚠️ Could not verify stock. Please try again.';
+          btn.disabled=false;
+          reject(new Error('Stock check failed'));
+          return;
+        }
+
+        updateProgress(st.sold,st.remaining,st.total);
+
+        if(st.remaining<=0){
+          banner.className='stock-check-banner fail';
+          banner.textContent='🚫 All numbers have been sold out!';
+          btn.disabled=false;
+          reject(new Error('SOLD_OUT'));
+          return;
+        }
+
+        if(requestedQty>st.remaining){
+          banner.className='stock-check-banner fail';
+          banner.innerHTML='⚠️ Only <strong>'+st.remaining.toLocaleString()+'</strong> numbers remaining. You requested <strong>'+requestedQty.toLocaleString()+'</strong>. Please reduce your quantity.';
+          btn.disabled=false;
+          reject(new Error('INSUFFICIENT: '+st.remaining));
+          return;
+        }
+
+        banner.className='stock-check-banner ok';
+        banner.innerHTML='✅ <strong>'+st.remaining.toLocaleString()+'</strong> numbers available. Proceeding to payment...';
+        btn.disabled=false;
+
+        setTimeout(()=>{banner.style.display='none';},2000);
+        resolve(st);
+      })
+      .catch(err=>{
+        // If offline, allow proceeding with cached data if recent
+        const age=Date.now()-_lastStockCheck.time;
+        if(_lastStockCheck.remaining!==null&&age<60000){
+          if(requestedQty<=_lastStockCheck.remaining){
+            banner.className='stock-check-banner ok';
+            banner.innerHTML='✅ Using cached data: ~'+_lastStockCheck.remaining.toLocaleString()+' available (checked '+Math.round(age/1000)+'s ago)';
+            btn.disabled=false;
+            setTimeout(()=>{banner.style.display='none';},2000);
+            resolve({remaining:_lastStockCheck.remaining});
+            return;
+          }
+        }
+        banner.className='stock-check-banner fail';
+        banner.textContent='⚠️ Cannot verify stock: '+(err.message==='TIMEOUT'?'Server timed out':err.message)+'. Please try again.';
+        btn.disabled=false;
+        reject(err);
+      });
+  });
+}
+
+// ═══════════════ FORM INTERACTIONS ═══════════════
 
 function updatePhoneStatus(){
   const r=$('fP').value,d=getDigitsOnly(r);
@@ -884,13 +1062,10 @@ function updateGcashRefStatus(){
     clearTimeout(inp._dupeTimer);
     inp._dupeTimer=setTimeout(()=>{
       if(!serverOnline)return;
-      safeFetch(SCRIPT_URL+'?action=stats&_t='+Date.now(),10000).catch(()=>{});
-      const params=new URLSearchParams({action:'adminSearchBuyer',query:d,token:TOKEN||'_'});
+      const params=new URLSearchParams({action:'checkGcashRef',ref:d});
       safeFetch(SCRIPT_URL+'?'+params,15000).then(res=>{
-        if(res?.success&&res.total>0){
-          const found=res.results.some(r=>String(r.gcashRef).trim()===d);
-          if(found){warn.classList.add('on');}else{warn.classList.remove('on');}
-        } else {warn.classList.remove('on');}
+        if(res?.success&&res.isDuplicate){warn.classList.add('on');}
+        else{warn.classList.remove('on');}
       }).catch(()=>{warn.classList.remove('on');});
     },800);
   } else {warn.classList.remove('on');}
@@ -908,10 +1083,10 @@ function setMaxQtyFn(){
   if(parseInt($('fQ').value)===MAX_QTY)return toast('Already at max.','warn');
   $('fQ').value=MAX_QTY;calc();
 }
-const resetQty=()=>{$('fQ').value='';calc();};
+const resetQty=()=>{$('fQ').value='';calc();$('stockBanner').style.display='none';};
 const calc=()=>{
   const v=Math.min(MAX_QTY,Math.max(0,parseInt($('fQ').value)||0));
-  $('dT').textContent='₱ '+( v*PRICE_PER).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+  $('dT').textContent='₱ '+(v*PRICE_PER).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
 };
 
 function stpSet(n){
@@ -929,11 +1104,28 @@ function go2(){
   if(!isValidPhone(ph))return toast('Phone: 11 digits starting with 09.','err');
   if(!qt||qt<MIN_QTY){$('fQ').value=MIN_QTY;calc();return toast('Min '+MIN_QTY+'.','err');}
   if(qt>MAX_QTY){$('fQ').value=MAX_QTY;calc();return toast('Max '+MAX_QTY.toLocaleString()+'.','err');}
-  hide('p1');show('p2');
-  $('dA').textContent=' ₱ '+(qt*PRICE_PER).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
-  stpSet(2);
+
+  // ═══ STOCK VERIFICATION before proceeding to payment ═══
+  verifyStock(qt).then(()=>{
+    hide('p1');show('p2');
+    $('dA').textContent=' ₱ '+(qt*PRICE_PER).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+    stpSet(2);
+    scrollTo({top:0,behavior:'smooth'});
+  }).catch(err=>{
+    if(err.message==='SOLD_OUT'){
+      applySoldOutState(TOTAL_POOL,0);
+    } else if(err.message.startsWith('INSUFFICIENT:')){
+      const avail=parseInt(err.message.split(':')[1]);
+      if(avail>0&&avail>=MIN_QTY){
+        toast('Only '+avail.toLocaleString()+' left. Adjusted.','warn');
+        $('fQ').value=avail;calc();
+      }
+    }
+    // Banner already shows the error
+  });
 }
-function go1(){hide('p2');show('p1');stpSet(1);$('gcashDupeWarn').classList.remove('on');}
+
+function go1(){hide('p2');show('p1');stpSet(1);$('gcashDupeWarn').classList.remove('on');$('stockBanner').style.display='none';}
 
 function submitPurchase(){
   if(_purchaseInProgress)return toast('Already processing...','warn');
@@ -964,7 +1156,8 @@ function doAttemptPurchase(nm,ph,qt,ref,tryN){
     .then(d=>{
       if(d.success){
         hideOv();$('buyBtn').disabled=false;_purchaseInProgress=false;
-        myNums=d.numbers.map(n=>pad6(n));
+        myNums=d.numbers.map(n=>padNum(n));
+        if(d.pool&&d.pool>=POOL_MIN)applyPoolConfig(d.pool);
         showResult(d,nm,ph,qt,ref);
         toast('⏳ '+d.quantity.toLocaleString()+' numbers reserved!','warn');
       } else if(d.retryable&&tryN<MAX_RETRY){
@@ -1007,7 +1200,8 @@ const cpA=()=>cpText(myNums.join('\n'));
 const cpGC=()=>cpText(GCASH_NUMBER.replace(/\D/g,''));
 
 function dlA(){
-  const L=[LOTTERY_NAME,'TX: '+$('rI').textContent,'Date: '+$('rD').textContent,'GCash Ref: '+$('rR').textContent,'Status: PENDING','Qty: '+myNums.length,'Amount: '+$('rA').textContent,'','NUMBERS:',''];
+  const r=getPoolRange();
+  const L=[LOTTERY_NAME,'Pool: '+r.min+'–'+r.max+' ('+TOTAL_POOL.toLocaleString()+')','TX: '+$('rI').textContent,'Date: '+$('rD').textContent,'GCash Ref: '+$('rR').textContent,'Status: PENDING','Qty: '+myNums.length,'Amount: '+$('rA').textContent,'','NUMBERS:',''];
   myNums.forEach(n=>L.push(n));
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([L.join('\n')],{type:'text/plain'}));
@@ -1030,6 +1224,7 @@ function again(){
   $('gcashRefErr').style.display='none';
   $('fR').style.borderColor='rgba(255,255,255,.1)';
   $('gcashDupeWarn').classList.remove('on');
+  $('stockBanner').style.display='none';
   hide('p2');show('p1');stpSet(1);
   myNums=[];_purchaseInProgress=false;
   scrollTo({top:0,behavior:'smooth'});checkConnection();
@@ -1056,7 +1251,7 @@ function doLogin(){
       $('adminLogin').style.display='none';$('adminPanel').style.display='block';
       $('loginPass').value='';toast('Welcome!','suc');
       showOv('Loading dashboard...','');
-      loadDashboard().then(hideOv).catch(hideOv);
+      Promise.all([loadDashboard(),loadSettingsFn()]).then(hideOv).catch(hideOv);
       startAutoRefresh();startKeepAlive();
     } else toast(d.error||'Login failed','err');
   }).catch(e=>{if(e.message!=='AUTH_FAILED')toast(e.message,'err');hideOv();$('loginBtn').disabled=false;});
@@ -1091,7 +1286,10 @@ const statusClass=s=>s==='APPROVED'?'ok':s==='PENDING'?'pend':'dec';
 function loadDashboard(){
   $('feedList').innerHTML='<li class="tbl-empty">Loading...</li>';
   return adminApi('adminDashboard').then(d=>{
-    if(d?.success)renderDashboard(d);
+    if(d?.success){
+      if(d.totalPool&&d.totalPool>=POOL_MIN)applyPoolConfig(d.totalPool);
+      renderDashboard(d);
+    }
     else $('feedList').innerHTML='<li class="tbl-empty">Failed. <button class="retry-btn" onclick="loadDashboard()">Retry</button></li>';
   }).catch(e=>{if(e.message!=='AUTH_FAILED')$('feedList').innerHTML='<li class="tbl-empty">Error: '+esc(e.message)+'</li>';});
 }
@@ -1106,6 +1304,8 @@ function renderDashboard(d){
   $('dsApproved').textContent=(+d.approvedTransactions||0).toLocaleString();
   $('dsDeclined').textContent=(+d.declinedTransactions||0).toLocaleString();
   $('dsBuyers').textContent=(+d.uniqueBuyers||0).toLocaleString();
+  const r=getPoolRange();
+  $('dsPoolInfo').textContent='Pool: '+r.min+'–'+r.max+' ('+TOTAL_POOL.toLocaleString()+')';
   const sold=+d.sold||0,tp=+d.totalPool||TOTAL_POOL,pct=tp>0?(sold/tp)*100:0;
   const bar=$('dsBar');bar.style.width=pct+'%';
   bar.classList.remove('mid','low');
@@ -1208,7 +1408,7 @@ function renderTxDetail(d){
   let allNums=[],nh='';
   const src=tx.soldNumbers?.length?tx.soldNumbers:tx.numbers?String(tx.numbers).trim().split(',').map(s=>s.trim()).filter(Boolean):[];
   if(src.length){
-    allNums=src.map(n=>pad6(n));
+    allNums=src.map(n=>padNum(n));
     const display=allNums.slice(0,500);
     const count=tx.soldNumbers?.length?tx.soldCount:src.length;
     const opacity=(!tx.soldNumbers&&tx.status==='DECLINED')?'.4':'1';
@@ -1237,7 +1437,8 @@ const copyDetailNums=()=>{
 function downloadDetailTx(){
   if(!_detailTx)return;
   const tx=_detailTx,nums=tx._allNums||[];
-  const L=[LOTTERY_NAME,'','TX: '+tx.transactionId,'Timestamp: '+tx.timestamp,'Name: '+tx.name,'Phone: '+tx.phone,'GCash: '+tx.gcashRef,'Status: '+tx.status,'Qty: '+tx.quantity,'Amount: ₱'+Number(tx.amount).toLocaleString(),'','NUMBERS:',''];
+  const r=getPoolRange();
+  const L=[LOTTERY_NAME,'Pool: '+r.min+'–'+r.max,'','TX: '+tx.transactionId,'Timestamp: '+tx.timestamp,'Name: '+tx.name,'Phone: '+tx.phone,'GCash: '+tx.gcashRef,'Status: '+tx.status,'Qty: '+tx.quantity,'Amount: ₱'+Number(tx.amount).toLocaleString(),'','NUMBERS:',''];
   nums.forEach(n=>L.push(n));
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([L.join('\n')],{type:'text/plain'}));
@@ -1276,9 +1477,10 @@ function doSearch(loaderId,apiAction,params,renderFn){
 }
 
 function searchNumber(){
-  const q=pad6($('searchNum').value.trim().replace(/\D/g,''));
-  if(!q)return toast('Enter number.','err');
-  if(!isValidNumber(q))return toast('1st digit must be 0 or 1.','err');
+  const raw=$('searchNum').value.trim().replace(/\D/g,'');
+  const q=padNum(raw);
+  if(!q||!raw)return toast('Enter number.','err');
+  if(!isValidNumber(q))return toast('Number out of pool range.','err');
   doSearch('sl1','adminSearchNumber',{query:q},d=>{
     $('searchResults').style.display='block';
     $('searchTitle').textContent=d.found?'✅ '+d.query+' found':'❌ Not found';
@@ -1321,8 +1523,9 @@ function searchDuplicates(){
 }
 
 function addNumber(){
-  const num=pad6($('addNum').value.trim().replace(/\D/g,''));
-  if(!num||!isValidNumber(num))return toast('Invalid (1st digit 0 or 1).','err');
+  const raw=$('addNum').value.trim().replace(/\D/g,'');
+  const num=padNum(raw);
+  if(!num||!raw||!isValidNumber(num))return toast('Number out of pool range ('+getPoolRange().min+'–'+getPoolRange().max+').','err');
   showOv('Adding...','');
   adminApi('adminAddNumber',{number:num,name:$('addName').value.trim(),phone:$('addPhone').value.trim()}).then(d=>{
     hideOv();
@@ -1332,8 +1535,9 @@ function addNumber(){
 }
 
 function removeNumber(){
-  const num=pad6($('removeNum').value.trim().replace(/\D/g,''));
-  if(!num||!isValidNumber(num))return toast('Invalid.','err');
+  const raw=$('removeNum').value.trim().replace(/\D/g,'');
+  const num=padNum(raw);
+  if(!num||!raw||!isValidNumber(num))return toast('Invalid number.','err');
   showOv('Removing...','');
   adminApi('adminRemoveNumber',{number:num}).then(d=>{
     hideOv();
@@ -1343,7 +1547,12 @@ function removeNumber(){
 }
 
 function loadSettingsFn(){
-  adminApi('adminInit').then(d=>{if(d?.success&&d.settings)applySettingsToForm(d.settings);}).catch(()=>{});
+  return adminApi('adminInit').then(d=>{
+    if(d?.success&&d.settings){
+      applySettingsToForm(d.settings);
+      if(d.settings.total_pool)applyPoolConfig(parseInt(d.settings.total_pool));
+    }
+  }).catch(()=>{});
 }
 function applySettingsToForm(s){
   $('setGcashName').value=s.gcash_name||'';$('setGcashNum').value=s.gcash_number||'';
@@ -1351,78 +1560,70 @@ function applySettingsToForm(s){
   $('setPrice').value=s.price_per_number||'1';$('setMinQty').value=s.min_quantity||'100';
   $('setMaxQty').value=s.max_quantity||'10000';$('setAnnouncement').value=s.announcement||'';
   $('setMaintenance').value=s.maintenance_mode||'false';
+  $('setPoolSize').value=s.total_pool||TOTAL_POOL;
+  updatePoolPreview();
 }
 
 function saveSettings(){
   const np=$('setNewPass').value,np2=$('setNewPass2').value;
   if(np&&np.length<6)return toast('Min 6 chars.','err');
   if(np&&np!==np2)return toast("Passwords don't match.",'err');
+
+  const poolVal=parseInt($('setPoolSize').value);
+  if(poolVal){
+    if(poolVal<POOL_MIN||poolVal>POOL_MAX)return toast('Pool must be '+POOL_MIN.toLocaleString()+'–'+POOL_MAX.toLocaleString()+'.','err');
+    if(poolVal%10000!==0)return toast('Pool must be a multiple of 10,000.','err');
+  }
+
   showOv('Saving...','');
   const p={gcash_name:$('setGcashName').value.trim(),gcash_number:$('setGcashNum').value.trim(),lottery_name:$('setLotteryName').value.trim(),draw_date:$('setDrawDate').value,price_per_number:$('setPrice').value,min_quantity:$('setMinQty').value,max_quantity:$('setMaxQty').value,announcement:$('setAnnouncement').value.trim(),maintenance_mode:$('setMaintenance').value};
+  if(poolVal)p.total_pool=String(poolVal);
   if(np)p.new_password=np;
   adminApi('adminUpdateSettings',p).then(d=>{
     hideOv();
-    if(d.success){toast('✅ Saved!','suc');$('setNewPass').value=$('setNewPass2').value='';if(np){toast('Password changed. Logging out...','warn');setTimeout(doLogout,2000);}}
+    if(d.success){
+      toast('✅ Saved!','suc');
+      $('setNewPass').value=$('setNewPass2').value='';
+      if(poolVal)applyPoolConfig(poolVal);
+      if(np){toast('Password changed. Logging out...','warn');setTimeout(doLogout,2000);}
+    }
     else toast(d.error||'Failed','err');
   }).catch(e=>{hideOv();if(e.message!=='AUTH_FAILED')toast('Error: '+e.message,'err');});
 }
 
 function exportData(type){
   showOv('Exporting...','Connecting to server...');
-  
   adminApi('adminExportFull',{type:type}).then(d=>{
     hideOv();
-    
-    if(!d.success){
-      toast(d.error||'Export failed','err');
-      return;
-    }
-    
-    if(!d.csv||d.total===0){
-      toast('No data to export','warn');
-      return;
-    }
-    
-    // Add BOM for Excel UTF-8 compatibility (preserves leading zeros, special chars)
+    if(!d.success){toast(d.error||'Export failed','err');return;}
+    if(!d.csv||d.total===0){toast('No data to export','warn');return;}
     const bom='\uFEFF';
     const blob=new Blob([bom+d.csv],{type:'text/csv;charset=utf-8;'});
     const url=URL.createObjectURL(blob);
-    
     const a=document.createElement('a');
-    a.href=url;
-    a.download=d.filename||('PisoPalaro-'+type+'-'+new Date().toISOString().slice(0,10)+'.csv');
-    a.style.display='none';
-    document.body.appendChild(a);
-    a.click();
-    
-    // Cleanup
-    setTimeout(()=>{
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    },1000);
-    
+    a.href=url;a.download=d.filename||('PisoPalaro-'+type+'-'+new Date().toISOString().slice(0,10)+'.csv');
+    a.style.display='none';document.body.appendChild(a);a.click();
+    setTimeout(()=>{document.body.removeChild(a);URL.revokeObjectURL(url);},1000);
     toast('✅ Exported '+d.total.toLocaleString()+' rows!','suc');
-    
-  }).catch(e=>{
-    hideOv();
-    if(e.message!=='AUTH_FAILED')toast('Export error: '+e.message,'err');
-  });
+  }).catch(e=>{hideOv();if(e.message!=='AUTH_FAILED')toast('Export error: '+e.message,'err');});
 }
 
 function startAutoRefresh(){
   if(_art)clearInterval(_art);
   _art=setInterval(()=>{
     if(!TOKEN)return;
-    if(activeP==='dashboard')adminApi('adminDashboard').then(d=>{if(d?.success)renderDashboard(d);}).catch(()=>{});
+    if(activeP==='dashboard')adminApi('adminDashboard').then(d=>{if(d?.success){if(d.totalPool)applyPoolConfig(d.totalPool);renderDashboard(d);}}).catch(()=>{});
   },15000);
 }
 
 // ── INIT ──────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded',()=>{
-  detectMode();initLogo();
+  detectMode();initLogo();updatePoolDisplay();
   if(IS_ADMIN_MODE){
     $('loginPass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
     $('loginUser').addEventListener('keydown',e=>{if(e.key==='Enter')$('loginPass').focus();});
+    const poolInput=$('setPoolSize');
+    if(poolInput)poolInput.addEventListener('input',updatePoolPreview);
   } else {
     setTodayDate();
     $('dP').textContent=GCASH_NUMBER;$('dN').textContent=GCASH_NAME;
@@ -1448,7 +1649,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     $('fR').addEventListener('blur',updateGcashRefStatus);
     checkConnection();
     setInterval(setTodayDate,60000);
-    setInterval(()=>{if(!IS_ADMIN_MODE&&serverOnline)safeFetch(SCRIPT_URL+'?action=stats',15000).then(st=>{if(st?.success)updateProgress(st.sold,st.remaining);}).catch(()=>{});},30000);
+    setInterval(()=>{if(!IS_ADMIN_MODE&&serverOnline)safeFetch(SCRIPT_URL+'?action=stats',15000).then(st=>{if(st?.success)updateProgress(st.sold,st.remaining,st.total);}).catch(()=>{});},30000);
   }
   document.addEventListener('keydown',e=>{
     if(e.key==='Escape'){closeConfirm();closeDetail();}
