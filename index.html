@@ -866,7 +866,7 @@ function applyPublicSettings(s){
   if(s.gcash_number){GCASH_NUMBER=String(s.gcash_number).substring(0,20);$('dP').textContent=GCASH_NUMBER;}
   if(s.price_per_number>0){PRICE_PER=parseFloat(s.price_per_number)||1;$('priceTag').textContent='₱'+PRICE_PER.toFixed(2)+' PER ENTRY';$('tagLine').textContent='Get your lucky numbers — only ₱'+PRICE_PER.toFixed(2)+' each!';}
   if(s.min_quantity>0){MIN_QTY=parseInt(s.min_quantity)||100;$('fQ').min=MIN_QTY;$('minQtySpan').textContent=MIN_QTY;}
-  if(s.max_quantity>0){MAX_QTY=parseInt(s.max_quantity)||10000;$('fQ').max=MAX_QTY;}
+  if(s.max_quantity>0){MAX_QTY=parseInt(s.max_quantity)||10000;$('fQ').max=MAX_QTY;}   buildQuickPicks();
   const fd=formatDrawDate(s.draw_date);$('drawBanner').style.display=fd?'block':'none';if(fd)$('drawDateText').textContent=fd;
   if(s.announcement&&String(s.announcement).trim()){$('announceText').textContent=String(s.announcement).substring(0,500);$('announceBanner').style.display='block';}else $('announceBanner').style.display='none';
   $('maintOverlay').classList.toggle('on',s.maintenance_mode===true||s.maintenance_mode==='true');
@@ -902,6 +902,32 @@ function updateGcashRefStatus(){const r=$('fR').value.trim(),d=getDigitsOnly(r);
 
 function addQty(n,el){if(isSoldOut)return toast('🚫 Sold out!','err');const cur=parseInt($('fQ').value)||0,next=Math.min(cur+n,MAX_QTY);if(cur>=MAX_QTY)return toast('Already at max.','warn');$('fQ').value=next;calc();if(el){el.classList.add('qp-added');setTimeout(()=>el.classList.remove('qp-added'),350);}}
 function setMaxQtyFn(){if(isSoldOut)return toast('🚫 Sold out!','err');if(parseInt($('fQ').value)===MAX_QTY)return toast('Already at max.','warn');$('fQ').value=MAX_QTY;calc();}
+function buildQuickPicks(){
+  const grid=$('qpGrid');if(!grid)return;
+  const picks=[100,200,500,1000,2000,5000];
+  const validPicks=picks.filter(p=>p<=MAX_QTY&&p>=MIN_QTY);
+  let html='';
+  validPicks.forEach(p=>{
+    html+=`<button class="qp-btn" onclick="addQty(${p},this)">+${p.toLocaleString()}</button>`;
+  });
+  html+='<button class="qp-btn max-btn" onclick="setMaxQtyFn()">MAX<br><span style="font-size:.65rem;opacity:.7">${MAX_QTY.toLocaleString()}</span></button>';
+  // Use template literal for MAX label
+  grid.innerHTML='';
+  validPicks.forEach(p=>{
+    const btn=document.createElement('button');
+    btn.className='qp-btn';
+    btn.textContent='+'+p.toLocaleString();
+    btn.onclick=function(){addQty(p,btn);};
+    grid.appendChild(btn);
+  });
+  const maxBtn=document.createElement('button');
+  maxBtn.className='qp-btn max-btn';
+  maxBtn.innerHTML='MAX<br><span style="font-size:.65rem;opacity:.7">'+MAX_QTY.toLocaleString()+'</span>';
+  maxBtn.onclick=function(){setMaxQtyFn();};
+  grid.appendChild(maxBtn);
+
+  if(isSoldOut)grid.querySelectorAll('.qp-btn').forEach(b=>b.classList.add('sold-out'));
+}
 const resetQty=()=>{$('fQ').value='';calc();$('stockBanner').style.display='none';};
 const calc=()=>{const v=Math.min(MAX_QTY,Math.max(0,parseInt($('fQ').value)||0));$('dT').textContent='₱ '+(v*PRICE_PER).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});};
 
@@ -1160,7 +1186,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     $('loginUser').addEventListener('keydown',e=>{if(e.key==='Enter')$('loginPass').focus();});
     const poolInput=$('setPoolSize');if(poolInput)poolInput.addEventListener('input',updatePoolPreview);
   } else {
-    setTodayDate();$('dP').textContent=GCASH_NUMBER;$('dN').textContent=GCASH_NAME;
+    setTodayDate();$('dP').textContent=GCASH_NUMBER;$('dN').textContent=GCASH_NAME;buildQuickPicks();
     const ni=$('fN');ni.maxLength=MAX_NAME_LEN;
     ni.addEventListener('input',()=>{const v=ni.value.replace(/[<>"'`;{}()\\]/g,'');if(v!==ni.value)ni.value=v;if(ni.value.length>MAX_NAME_LEN)ni.value=ni.value.substring(0,MAX_NAME_LEN);});
     $('fP').addEventListener('input',function(){this.value=getDigitsOnly(this.value).substring(0,11);updatePhoneStatus();});
